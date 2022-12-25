@@ -16,6 +16,7 @@ import builtins
 import math
 import warnings
 import inspect
+import fx
 
 __all__ = ["PythonCode", "CodeGen", "Graph"]
 
@@ -581,7 +582,7 @@ class CodeGen(object):
 
 
         if len(wrapped_fns) > 0:
-            wrap_name = add_global('wrap', oneflow.fx.wrap)
+            wrap_name = add_global('wrap', fx.wrap)
             wrap_stmts = '\n'.join([f'{wrap_name}("{name}")' for name in wrapped_fns])
         else:
             wrap_stmts = ''

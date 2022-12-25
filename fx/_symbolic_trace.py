@@ -29,6 +29,7 @@ from .graph import _PyTreeCodeGen, _PyTreeInfo, Graph
 from .graph_module import GraphModule
 from .node import Argument, base_types, map_aggregate
 from .proxy import ParameterProxy, Proxy, TracerBase
+import temp
 
 HAS_VARSTUFF = inspect.CO_VARARGS | inspect.CO_VARKEYWORDS
 
@@ -181,11 +182,6 @@ PH = PHBase()
 
 @compatibility(is_backward_compatible=True)
 class Tracer(TracerBase):
-    # Reference: https://github.com/pyoneflow/pyoneflow/issues/54354
-    # The first line of this docstring overrides the one Sphinx generates for the
-    # documentation. We need it so that Sphinx doesn't leak `math`s path from the
-    # build environment (e.g. `<module 'math' from '/leaked/path').
-
     """Tracer(autowrap_modules=(math,), autowrap_functions=())
 
     ``Tracer`` is the class that implements the symbolic tracing functionality
@@ -203,7 +199,7 @@ class Tracer(TracerBase):
     @compatibility(is_backward_compatible=True)
     def __init__(
         self,
-        autowrap_modules: Tuple[ModuleType] = (math,),
+        autowrap_modules: Tuple[ModuleType] = (math, oneflow._C),
         autowrap_functions: Tuple[Callable, ...] = (),
         param_shapes_constant: bool = False,
     ) -> None:
@@ -237,6 +233,11 @@ class Tracer(TracerBase):
 
         # Functions we will eagerly wrap when we see them while tracing
         # this captures both `math.sqrt()` and `from math import sqrt` automatically
+        temp = {
+            name
+            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
+            if not name.startswith("_") and callable(value)
+        }
         self._autowrap_function_ids: Set[int] = {
             id(value)
             for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
@@ -246,6 +247,7 @@ class Tracer(TracerBase):
 
         # Python modules to apply autowrap to at the start, in addition to
         # modules we see while tracing
+        # autowrap_modules = [module for module in autowrap_modules if module is not oneflow]
         self._autowrap_search: List[ModuleType] = list(autowrap_modules)
         self.param_shapes_constant = param_shapes_constant
 
@@ -326,7 +328,7 @@ class Tracer(TracerBase):
 
         Leaf modules are the atomic units that appear in
         the IR, referenced by ``call_module`` calls. By default,
-        Modules in the Pyoneflow standard library namespace (oneflow.nn)
+        Modules in the Oneflow standard library namespace (oneflow.nn)
         are leaf modules. All other modules are traced through and
         their constituent ops are recorded, unless specified otherwise
         via this parameter.
@@ -691,9 +693,18 @@ class Tracer(TracerBase):
                 _patch_wrapped_functions(patcher)
                 _autowrap_check(patcher, fn_globals, self._autowrap_function_ids)
                 for module in self._autowrap_search:
-                    _autowrap_check(
-                        patcher, module.__dict__, self._autowrap_function_ids
+                    if module is oneflow:
+                        dict = {}
+                        for name, value in module.__dict__.items():
+                            if not isinstance(value, oneflow.nn.Module):
+                                dict[name] = value
+                        _autowrap_check(
+                        patcher, dict, self._autowrap_function_ids
                     )
+                    else:
+                        _autowrap_check(
+                            patcher, module.__dict__, self._autowrap_function_ids
+                        )
                 self.create_node(
                     "output",
                     "output",
@@ -731,11 +742,6 @@ _wrapped_fns_to_patch: List[Tuple[dict, str]] = []
 _wrapped_methods_to_patch: List[Tuple[type, str]] = []
 
 if os.environ.get("FX_PATCH_GETITEM") == "1":
-    # This change is needed to trace models like PositionalEmbedding from BERT:
-    # https://github.com/pyoneflow/benchmark/blob/master/oneflowbenchmark/models/BERT_pyoneflow/bert_pyoneflow/model/embedding/position.py
-    # but causes issues in quantization documented here:
-    # https://github.com/pyoneflow/pyoneflow/issues/50710
-    # once that is fixed we can make this the default behavior.
     _wrapped_methods_to_patch.append((oneflow.Tensor, "__getitem__"))
 
 
@@ -838,6 +844,10 @@ class _Patcher(object):
         new_fn.__fx_already_patched = deduplicate  # type: ignore[attr-defined]
         if name not in frame_dict and hasattr(builtins, name):
             self.patches_made.append(_PatchedFnDel(frame_dict, name, None))
+        elif hasattr(oneflow, name):
+            self.patches_made.append(
+                _PatchedFnSetItem(frame_dict, name, frame_dict[name])
+            )
         elif getattr(frame_dict[name], "__fx_already_patched", False):
             return  # already patched, no need to do it again
         else:
@@ -886,8 +896,11 @@ def _patch_wrapped_functions(patcher: _Patcher):
     the listed global functions in the `_create_wrapped_func` wrapper.
     """
     for frame_dict, name in _wrapped_fns_to_patch:
-        if name not in frame_dict and hasattr(builtins, name):
-            orig_fn = getattr(builtins, name)
+        if name not in frame_dict and (hasattr(builtins, name) or hasattr(oneflow, name)):
+            if hasattr(builtins, name):
+                orig_fn = getattr(builtins, name)
+            else:
+                orig_fn = getattr(oneflow, name)
         else:
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
