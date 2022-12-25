@@ -3,23 +3,22 @@ import sys
 sys.path.append(r'../one-fx')
 import fx
 
-fx.proxy.Proxy
+def wrap_test_func(x):
+    return x
 
-def test_tensor(t: oneflow.Tensor):
-    print(t)
-
+p = [1, 2, 3]
 class MyModule(oneflow.nn.Module):
     def __init__(self, do_activation : bool = False):
         super().__init__()
         self.do_activation = do_activation
         self.linear = oneflow.nn.Linear(512, 512)
-        self.relu = oneflow.nn.ReLU()
 
     def forward(self, x):
         x = self.linear(x)
+        x = wrap_test_func(x)
 
         if self.do_activation:
-            x = self.relu(x)
+            x = oneflow._C.relu(x)
         return x
 
 without_activation = MyModule(do_activation=False)
@@ -36,9 +35,10 @@ def forward(self, x):
 traced_with_activation = fx.symbolic_trace(with_activation)
 print(traced_with_activation.code)
 """
-import oneflow
+wrap("oneflow._oneflow_internal._C.relu")
+
 def forward(self, x):
     linear = self.linear(x);  x = None
-    relu = oneflow.relu(linear);  linear = None
+    relu = oneflow._oneflow_internal._C.relu(linear);  linear = None
     return relu
 """
