@@ -902,6 +902,8 @@ def _patch_wrapped_functions(patcher: _Patcher):
             else:
                 orig_fn = getattr(oneflow, name)
         else:
+            if hasattr(oneflow._C, name.split('.')[-1]):
+                continue
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
 
