@@ -2,6 +2,7 @@
 from typing import TYPE_CHECKING, Union, Callable, Any, Tuple, List, Optional, Dict, Set
 from ._compatibility import compatibility
 from .immutable_collections import immutable_dict, immutable_list
+from .utils._submodule import get_submodule
 import oneflow
 import builtins
 import types
@@ -538,7 +539,10 @@ class Node:
             assert (
                 self.graph.owning_module is not None
             ), "self.graph.owning_module not set for purity check"
-            target_mod = self.graph.owning_module.get_submodule(self.target)
+            if hasattr(self.graph.owning_module, 'get_submodule'):
+                target_mod = self.graph.owning_module.get_submodule(self.target)
+            else:
+                target_mod = get_submodule(self.graph.owning_module, self.target)
             assert (
                 target_mod is not None
             ), f"Did not find expected submodule target {self.target}"
