@@ -11,9 +11,9 @@ class MyModuleBase(oneflow.nn.Module):
     def forward(self, x):
         matrx = self.get_mul_matrix()
         if self.no_relu():
-            return oneflow._C.mm(x, matrx)
+            return oneflow.mm(x, matrx)
         else:
-            return oneflow._C.relu(oneflow._C.mm(x, matrx))
+            return oneflow.relu(oneflow.mm(x, matrx))
 
     def get_mul_matrix(self):
         return self.param
@@ -90,26 +90,26 @@ class TestConstParamShapeInControlFlow(unittest.TestCase):
         performs both mm and relu ops in cascade
         """
         x = oneflow.randn(10, 5)
-        assert np.allclose(mm_only_mod(x).numpy(), oneflow._C.mm(x, mm_only_mod.get_mul_matrix()).numpy())
+        assert np.allclose(mm_only_mod(x).numpy(), oneflow.mm(x, mm_only_mod.get_mul_matrix()).numpy())
         tracer = fx.Tracer(param_shapes_constant=True)
         traced_graph = tracer.trace(mm_only_mod)
 
         # verify the graph module calculates the same result
         graph_mod_mm = fx.GraphModule(mm_only_mod, traced_graph)
-        assert np.allclose(graph_mod_mm(x).numpy(), oneflow._C.mm(x, mm_only_mod.get_mul_matrix()).numpy())
+        assert np.allclose(graph_mod_mm(x).numpy(), oneflow.mm(x, mm_only_mod.get_mul_matrix()).numpy())
 
 
         # Make a new module with different parameter shape to go down the different
         # code path
         x = oneflow.randn(10, 15)
-        assert np.allclose(relu_mod(x).numpy(), oneflow._C.relu(oneflow._C.mm(x, relu_mod.get_mul_matrix())).numpy())
+        assert np.allclose(relu_mod(x).numpy(), oneflow.relu(oneflow.mm(x, relu_mod.get_mul_matrix())).numpy())
 
         tracer2 = fx.Tracer(param_shapes_constant=True)
         traced_graph2 = tracer2.trace(relu_mod)
 
         # verify the graph module calculates the same result
         graph_mod_relu = fx.GraphModule(relu_mod, traced_graph2)
-        assert np.allclose(graph_mod_relu(x).numpy(), oneflow._C.relu(oneflow._C.mm(x, relu_mod.get_mul_matrix())).numpy())
+        assert np.allclose(graph_mod_relu(x).numpy(), oneflow.relu(oneflow.mm(x, relu_mod.get_mul_matrix())).numpy())
 
 
         graph1_node_targets = [n.target for n in traced_graph.nodes]

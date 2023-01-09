@@ -41,7 +41,7 @@ class AlexNet(nn.Module):
     def forward(self, x: flow.Tensor) -> flow.Tensor:
         x = self.features(x)
         x = self.avgpool(x)
-        x = flow._C.flatten(x, 1)
+        x = flow.flatten(x, 1)
         x = self.classifier(x)
         return x
 

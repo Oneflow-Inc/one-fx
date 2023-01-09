@@ -16,16 +16,16 @@ from fx.passes.infra.pass_manager import (
 def replace_add_with_mul_pass(gm):
     modified = False
     for node in gm.graph.nodes:
-        if node.op == "call_function" and node.target == oneflow._C.add:
-            node.target = oneflow._C.mul
+        if node.op == "call_function" and node.target == oneflow.add:
+            node.target = oneflow.mul
             modified = True
     return PassResult(gm, modified)
 
 def replace_mul_with_div_pass(gm):
     modified = False
     for node in gm.graph.nodes:
-        if node.op == "call_function" and node.target == oneflow._C.mul:
-            node.target = oneflow._C.div
+        if node.op == "call_function" and node.target == oneflow.mul:
+            node.target = oneflow.div
             modified = True
     return PassResult(gm, modified)
 
@@ -34,8 +34,8 @@ class AddModule(oneflow.nn.Module):
         super().__init__()
 
     def forward(self, x):
-        y = oneflow._C.add(x, x)
-        z = oneflow._C.add(y, x)
+        y = oneflow.add(x, x)
+        z = oneflow.add(y, x)
         return z
 
 
@@ -59,7 +59,7 @@ class TestPassManager(unittest.TestCase):
         # Check that all call_function nodes are divs
         for node in modified_m.graph.nodes:
             if node.op == "call_function":
-                self.assertEqual(node.target, oneflow._C.div)
+                self.assertEqual(node.target, oneflow.div)
 
     def test_this_before_that_pass_constraint(self):
         """
@@ -85,7 +85,7 @@ class TestPassManager(unittest.TestCase):
 
         def check_div_target(graph_module):
             for node in graph_module.graph.nodes:
-                if node.op == "call_function" and node.target != oneflow._C.div:
+                if node.op == "call_method" and node.target != oneflow.div:
                     raise ValueError("Target should be div!")
         pm.add_checks(check_div_target)
 
