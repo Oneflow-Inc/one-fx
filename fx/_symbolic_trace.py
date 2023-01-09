@@ -31,6 +31,22 @@ from .node import Argument, base_types, map_aggregate
 from .proxy import ParameterProxy, Proxy, TracerBase
 import temp
 
+internal_oneflow_funcs = [
+    "FunctionConfig",
+    "Generator",
+    "INVALID_SPLIT_AXIS",
+    "MultiClientSession",
+    "Tensor",
+    "builtin_op",
+    "distributed",
+    "default_generator",
+    "docstr",
+    "eager",
+    "enable_eager_execution",
+    "env",
+    "framework",
+]
+
 HAS_VARSTUFF = inspect.CO_VARARGS | inspect.CO_VARKEYWORDS
 
 # These need to run in global scope to handle nested calls correctly
@@ -199,7 +215,7 @@ class Tracer(TracerBase):
     @compatibility(is_backward_compatible=True)
     def __init__(
         self,
-        autowrap_modules: Tuple[ModuleType] = (math, oneflow._C),
+        autowrap_modules: Tuple[ModuleType] = (math, ),
         autowrap_functions: Tuple[Callable, ...] = (),
         param_shapes_constant: bool = False,
     ) -> None:
@@ -743,6 +759,16 @@ _wrapped_methods_to_patch: List[Tuple[type, str]] = []
 
 if os.environ.get("FX_PATCH_GETITEM") == "1":
     _wrapped_methods_to_patch.append((oneflow.Tensor, "__getitem__"))
+    
+oneflow_funcs = dir(oneflow)
+for funcs_name in oneflow_funcs:
+    if not funcs_name.startswith("_") and funcs_name not in internal_oneflow_funcs:
+        _wrapped_methods_to_patch.append((oneflow, funcs_name))
+
+oneflow_nn_funcs = dir(oneflow.nn.functional)
+for funcs_name in oneflow_nn_funcs:
+    if not funcs_name.startswith("_"):
+        _wrapped_methods_to_patch.append((oneflow.nn.functional, funcs_name)) 
 
 
 def _find_proxy(*objects_to_search):
@@ -844,10 +870,6 @@ class _Patcher(object):
         new_fn.__fx_already_patched = deduplicate  # type: ignore[attr-defined]
         if name not in frame_dict and hasattr(builtins, name):
             self.patches_made.append(_PatchedFnDel(frame_dict, name, None))
-        elif hasattr(oneflow, name):
-            self.patches_made.append(
-                _PatchedFnSetItem(frame_dict, name, frame_dict[name])
-            )
         elif getattr(frame_dict[name], "__fx_already_patched", False):
             return  # already patched, no need to do it again
         else:
@@ -896,14 +918,9 @@ def _patch_wrapped_functions(patcher: _Patcher):
     the listed global functions in the `_create_wrapped_func` wrapper.
     """
     for frame_dict, name in _wrapped_fns_to_patch:
-        if name not in frame_dict and (hasattr(builtins, name) or hasattr(oneflow, name)):
-            if hasattr(builtins, name):
-                orig_fn = getattr(builtins, name)
-            else:
-                orig_fn = getattr(oneflow, name)
+        if name not in frame_dict and hasattr(builtins, name):
+            orig_fn = getattr(builtins, name)
         else:
-            if hasattr(oneflow._C, name.split('.')[-1]):
-                continue
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
 

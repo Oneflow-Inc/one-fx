@@ -8,7 +8,7 @@ import fx
 import unittest
 
 def assert_equal(a, b):
-    if not oneflow._C.equal(a, a):
+    if not oneflow.equal(a, a):
         raise "Must be equal."
 
 class TestDCE(unittest.TestCase):

@@ -18,7 +18,7 @@ class MyModule(oneflow.nn.Module):
         x = wrap_test_func(x)
 
         if self.do_activation:
-            x = oneflow._C.relu(x)
+            x = oneflow.relu(x)
         return x
 
 without_activation = MyModule(do_activation=False)
