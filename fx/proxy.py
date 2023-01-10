@@ -166,6 +166,8 @@ class TracerBase:
             return a.node
         elif isinstance(a, base_types) or a is None or a is ...:
             return a
+        elif hasattr(a, '__wrapped__') and isinstance(a.__wrapped__, oneflow._oneflow_internal.dtype):
+            return a.__wrapped__
         raise NotImplementedError(f"argument of type: {type(a)}")
 
     @compatibility(is_backward_compatible=True)
@@ -307,7 +309,7 @@ class Proxy:
 
     def __len__(self):
         raise RuntimeError("'len' is not supported in symbolic tracing by default. If you want "
-                           "this call to be recorded, please call oneflow.fx.wrap('len') at "
+                           "this call to be recorded, please call fx.wrap('len') at "
                            "module scope")
 
     @classmethod

@@ -6,7 +6,6 @@ import fx
 def wrap_test_func(x):
     return x
 
-p = [1, 2, 3]
 class MyModule(oneflow.nn.Module):
     def __init__(self, do_activation : bool = False):
         super().__init__()

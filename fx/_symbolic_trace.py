@@ -29,7 +29,6 @@ from .graph import _PyTreeCodeGen, _PyTreeInfo, Graph
 from .graph_module import GraphModule
 from .node import Argument, base_types, map_aggregate
 from .proxy import ParameterProxy, Proxy, TracerBase
-import temp
 
 internal_oneflow_funcs = [
     "FunctionConfig",
@@ -769,7 +768,6 @@ oneflow_nn_funcs = dir(oneflow.nn.functional)
 for funcs_name in oneflow_nn_funcs:
     if not funcs_name.startswith("_"):
         _wrapped_methods_to_patch.append((oneflow.nn.functional, funcs_name)) 
-
 
 def _find_proxy(*objects_to_search):
     """
