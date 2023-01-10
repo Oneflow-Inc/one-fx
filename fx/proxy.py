@@ -96,7 +96,7 @@ class TracerBase:
         symbolic tracing.
         """
         # We have to do a little dance here. Basically, walk up the callstack and
-        # record the first frame not in the pyoneflow source. This is the frame executing
+        # record the first frame not in the Oneflow source. This is the frame executing
         # the user code during tracing.
         frame = inspect.currentframe()
 
@@ -189,7 +189,7 @@ class TracerBase:
         raise TraceError('Proxy object cannot be iterated. This can be '
                          'attempted when the Proxy is used in a loop or'
                          ' as a *args or **kwargs function argument. '
-                         'See the oneflow.fx docs on pyoneflow.org for a '
+                         'See the One-fx docs on oneflow.org for a '
                          'more detailed explanation of what types of '
                          'control flow can be traced, and check out the'
                          ' Proxy docstring for help troubleshooting '

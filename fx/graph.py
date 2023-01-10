@@ -1111,7 +1111,7 @@ class Graph:
 
         Args:
 
-            the_function (Callable[..., Any]): The function to be called. Can be any Pyoneflow
+            the_function (Callable[..., Any]): The function to be called. Can be any Oneflow
                 operator, Python function, or member of the ``builtins`` or ``operator``
                 namespaces.
 

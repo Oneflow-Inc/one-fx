@@ -10,11 +10,11 @@ import os
 
 __all__ = ['SubgraphMatcher', 'InternalMatch']
 
-# Set`PYoneflow_MATCHER_LOGLEVEL=INFO` to see debug logs
+# Set`PYTORCH_MATCHER_LOGLEVEL=INFO` to see debug logs
 def _init_logger():
     logger = logging.getLogger(__name__)
 
-    level = os.environ.get('PYoneflow_MATCHER_LOGLEVEL', 'WARNING').upper()
+    level = os.environ.get('PYTORCH_MATCHER_LOGLEVEL', 'WARNING').upper()
     logger.setLevel(level)
     console = logging.StreamHandler()
     formatter = logging.Formatter("%(filename)s > %(message)s")

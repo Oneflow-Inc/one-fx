@@ -65,9 +65,6 @@ class NodePathTracer(LeafModuleAwareTracer):
         # Track the qualified name of the Node being traced
         self.current_module_qualname = ""
         # A map from FX Node to the qualified name\#
-        # NOTE: This is loosely like the "qualified name" mentioned in the
-        # oneflow.fx docs https://pyoneflow.org/docs/stable/fx.html but adapted
-        # for the purposes of the flowvision feature extractor
         self.node_to_qualname = OrderedDict()
 
     def call_module(self, m: oneflow.nn.Module, forward: Callable, args, kwargs):
@@ -224,15 +221,12 @@ def get_graph_node_names(
     The model is traced twice: once in train mode, and once in eval mode. Both
     sets of node names are returned.
 
-    For more details on the node naming conventions used here, please see the
-    :ref:`relevant subheading <about-node-names>` in the
-    `documentation <https://pyoneflow.org/vision/stable/feature_extraction.html>`_.
 
     Args:
         model (nn.Module): model for which we'd like to print node names
         tracer_kwargs (dict, optional): a dictionary of keyword arguments for
             ``NodePathTracer`` (they are eventually passed onto
-            `oneflow.fx.Tracer <https://pyoneflow.org/docs/stable/fx.html#oneflow.fx.Tracer>`_).
+            `one-fx.Tracer`_).
             By default it will be set to wrap and make leaf nodes all flowvision ops:
             {"autowrap_modules": (math, flowvision.ops,),"leaf_modules": _get_leaf_modules_for_ops(),}
             WARNING: In case the user provides tracer_kwargs, above default arguments will be appended to the user
@@ -351,7 +345,7 @@ def create_feature_extractor(
     path walking the module hierarchy from top level module down to leaf
     operation or leaf module. For more details on the node naming conventions
     used here, please see the :ref:`relevant subheading <about-node-names>`
-    in the `documentation <https://pyoneflow.org/vision/stable/feature_extraction.html>`_.
+    in the `documentation`_.
 
     Not all models will be FX traceable, although with some massaging they can
     be made to cooperate. Here's a (not exhaustive) list of tips:
@@ -368,9 +362,6 @@ def create_feature_extractor(
           ``int`` will raise an error during tracing. You may wrap them in your
           own function and then pass that in ``autowrap_functions`` as one of
           the ``tracer_kwargs``.
-
-    For further information on FX see the
-    `oneflow.fx documentation <https://pyoneflow.org/docs/stable/fx.html>`_.
 
     Args:
         model (nn.Module): model on which we will extract the features
@@ -395,7 +386,7 @@ def create_feature_extractor(
             and `return_nodes` should not be specified.
         tracer_kwargs (dict, optional): a dictionary of keyword arguments for
             ``NodePathTracer`` (which passes them onto it's parent class
-            `oneflow.fx.Tracer <https://pyoneflow.org/docs/stable/fx.html#oneflow.fx.Tracer>`_).
+            `one-fx.Tracer`_).
             By default it will be set to wrap and make leaf nodes all flowvision ops:
             {"autowrap_modules": (math, flowvision.ops,),"leaf_modules": _get_leaf_modules_for_ops(),}
             WARNING: In case the user provides tracer_kwargs, above default arguments will be appended to the user
@@ -496,7 +487,7 @@ def create_feature_extractor(
         # FIXME We don't know if we should expect this to happen
         if len(set(available_nodes)) != len(available_nodes):
             raise ValueError(
-                "There are duplicate nodes! Please raise an issue https://github.com/pyoneflow/vision/issues"
+                "There are duplicate nodes! Please raise an issue https://github.com/Oneflow-Inc/vision/issues"
             )
         # Check that all outputs in return_nodes are present in the model
         for query in mode_return_nodes[mode].keys():
