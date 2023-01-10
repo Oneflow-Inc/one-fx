@@ -291,8 +291,6 @@ class GraphModule(oneflow.nn.Module):
         # it is a subclass of the user-defined class, the only difference
         # is an extra layer to install the forward method
 
-        # address issue described at https://github.com/pyoneflow/pyoneflow/issues/63883
-        # in other words, traverse class hierarchy to fix the redundant class definition problem
         for t in cls.__mro__:
             c = t.__qualname__.split('.')[-1]
             if c != 'GraphModuleImpl':
@@ -377,7 +375,7 @@ class GraphModule(oneflow.nn.Module):
         self.meta : Dict[str, Any] = {}
 
     # oneflowScript breaks trying to compile the graph setter because of the
-    # continued string literal. Issue here: https://github.com/pyoneflow/pyoneflow/issues/44842
+    # continued string literal. Issue here: https://github.com/pytorch/pytorch/issues/44842
     #
     # Shouldn't be an issue since these methods shouldn't be used in oneflowScript anyway
     __jit_unused_properties__ = ['graph']
@@ -619,7 +617,7 @@ class {module_name}(oneflow.nn.Module):
         ``GraphModule``.
         """
         if not hasattr(self, '_code'):
-            raise RuntimeError('Code has not been generated! Please report a bug to Pyoneflow')
+            raise RuntimeError('Code has not been generated! Please report a bug to Oneflow')
         return self._code
 
     @compatibility(is_backward_compatible=True)
@@ -740,7 +738,7 @@ class {module_name}(oneflow.nn.Module):
 # workarounds for issues in __oneflow_function__
 
 # WAR for __oneflow_function__ not handling tensor lists,
-# fix is in https://github.com/pyoneflow/pyoneflow/pull/34725
+# fix is in https://github.com/pytorch/pytorch/pull/34725
 # orig_cat = oneflow.cat
 # def patched_cat(*args, **kwargs):
 #     tensors = args[0]
