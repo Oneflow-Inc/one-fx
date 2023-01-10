@@ -492,8 +492,8 @@ class CodeGen(object):
             if verbose:
                 # override annotation with more detailed information
                 from oneflow._subclasses.fake_tensor import FakeTensor
-                from oneflow.fx.experimental.proxy_tensor import py_sym_types
-                from oneflow.fx.passes.shape_prop import TensorMetadata
+                from fx.experimental.proxy_tensor import py_sym_types
+                from fx.passes.shape_prop import TensorMetadata
 
                 meta_val = node.meta.get('val', node.meta.get('tensor_meta', None))
 
@@ -514,9 +514,31 @@ class CodeGen(object):
                 return
             elif node.op == 'call_method':
                 assert isinstance(node.target, str)
-                body.append(
-                    f'{repr(node)}{maybe_type_annotation} = {_format_target(repr(node.args[0]), node.target)}'
-                    f'({_format_args(node.args[1:], node.kwargs)})')
+                if hasattr(oneflow.nn.functional, node.target) or hasattr(oneflow, node.target):
+                    '''
+                        We check the attr here because we auto-wrap all the oneflow functions as 'call_method'.
+                        Therefore they will be converted to method calls and raise errors. For example:
+                        ```
+                        def forward(self, x):
+                            return oneflow.relu(x)
+                        ```
+                        The code will be wrapped as the code below if we don't take this check:
+                        ```
+                        def forward(self, x):
+                            return x.relu()
+                        ```
+                        However, what we want is `return oneflow.relu(x)`. That's the reason of this check.
+                    '''
+                    assert isinstance(node.target, str)
+                    current_target = getattr(oneflow, node.target) if hasattr(oneflow, node.target) else getattr(oneflow.nn.functional, node.target)
+                    qualified_name = _get_qualified_name(current_target)
+                    global_name = add_global(qualified_name, current_target)
+                    body.append(
+                        f'{repr(node)}{maybe_type_annotation} = {global_name}({_format_args(node.args, node.kwargs)})')
+                else:
+                    body.append(
+                        f'{repr(node)}{maybe_type_annotation} = {_format_target(repr(node.args[0]), node.target)}'
+                        f'({_format_args(node.args[1:], node.kwargs)})')
                 return
             elif node.op == 'call_function':
                 assert callable(node.target)
