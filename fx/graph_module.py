@@ -1,7 +1,7 @@
 import oneflow
 import oneflow.nn as nn
 # import oneflow.overrides
-from oneflow.nn.module import _addindent
+from oneflow.nn.modules.module import _addindent
 import linecache
 from typing import Type, Dict, List, Any, Union, Optional, Set
 from .graph import Graph, _PyTreeCodeGen, _is_from_oneflow, _custom_builtins, PythonCode
