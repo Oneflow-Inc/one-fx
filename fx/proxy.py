@@ -330,9 +330,6 @@ class Proxy:
                                f'trying to trace operations {orig_method}')
         tracer = next(iter(tracers.keys()))
 
-        if isinstance(orig_method, oneflow._C.ScriptMethod):
-            args = (orig_method.owner,) + args
-            return tracer.create_proxy('call_method', orig_method.name, args, kwargs)
         if oneflow.overrides.is_tensor_method_or_property(orig_method):
             return tracer.create_proxy('call_method', orig_method.__name__, args, kwargs)
         else:
