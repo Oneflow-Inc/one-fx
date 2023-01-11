@@ -186,7 +186,7 @@ def _get_leaf_modules_for_ops() -> List[type]:
 
 
 def _set_default_tracer_kwargs(original_tr_kwargs: Optional[Dict[str, Any]]) -> Dict[str, Any]:
-    default_autowrap_modules = (math, oneflow, oneflow.nn.functional)
+    default_autowrap_modules = (math, )
     default_leaf_modules = _get_leaf_modules_for_ops()
     result_tracer_kwargs = {} if original_tr_kwargs is None else original_tr_kwargs
     result_tracer_kwargs["autowrap_modules"] = (
