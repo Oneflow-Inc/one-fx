@@ -85,7 +85,7 @@ class TestPassManager(unittest.TestCase):
 
         def check_div_target(graph_module):
             for node in graph_module.graph.nodes:
-                if node.op == "call_method" and node.target != oneflow.div:
+                if node.op == "call_function" and node.target != oneflow.div:
                     raise ValueError("Target should be div!")
         pm.add_checks(check_div_target)
 

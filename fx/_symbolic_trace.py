@@ -214,7 +214,7 @@ class Tracer(TracerBase):
     @compatibility(is_backward_compatible=True)
     def __init__(
         self,
-        autowrap_modules: Tuple[ModuleType] = (math, ),
+        autowrap_modules: Tuple[ModuleType] = (math, oneflow, oneflow.nn.functional),
         autowrap_functions: Tuple[Callable, ...] = (),
         param_shapes_constant: bool = False,
     ) -> None:
@@ -255,9 +255,14 @@ class Tracer(TracerBase):
         }
         self._autowrap_function_ids: Set[int] = {
             id(value)
-            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
+            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules if m not in (oneflow, oneflow.nn.functional)])
             if not name.startswith("_") and callable(value)
         }
+        self._autowrap_function_ids.update({
+            id(value)
+            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules if m in (oneflow, oneflow.nn.functional)])
+            if not name.startswith("_") and callable(value) and name[0].lower() == name[0]
+        })
         self._autowrap_function_ids.update(set([id(f) for f in autowrap_functions]))
 
         # Python modules to apply autowrap to at the start, in addition to
@@ -713,8 +718,8 @@ class Tracer(TracerBase):
                         for name, value in module.__dict__.items():
                             if not isinstance(value, oneflow.nn.Module):
                                 dict[name] = value
-                        _autowrap_check(
-                        patcher, dict, self._autowrap_function_ids
+                        _autowrap_check_oneflow(
+                        patcher, dict, module.__dict__, self._autowrap_function_ids
                     )
                     else:
                         _autowrap_check(
@@ -759,15 +764,15 @@ _wrapped_methods_to_patch: List[Tuple[type, str]] = []
 if os.environ.get("FX_PATCH_GETITEM") == "1":
     _wrapped_methods_to_patch.append((oneflow.Tensor, "__getitem__"))
     
-oneflow_funcs = dir(oneflow)
-for funcs_name in oneflow_funcs:
-    if not funcs_name.startswith("_") and funcs_name not in internal_oneflow_funcs:
-        _wrapped_methods_to_patch.append((oneflow, funcs_name))
+# oneflow_funcs = dir(oneflow)
+# for funcs_name in oneflow_funcs:
+#     if not funcs_name.startswith("_") and funcs_name not in internal_oneflow_funcs:
+#         _wrapped_methods_to_patch.append((oneflow, funcs_name))
 
-oneflow_nn_funcs = dir(oneflow.nn.functional)
-for funcs_name in oneflow_nn_funcs:
-    if not funcs_name.startswith("_"):
-        _wrapped_methods_to_patch.append((oneflow.nn.functional, funcs_name)) 
+# oneflow_nn_funcs = dir(oneflow.nn.functional)
+# for funcs_name in oneflow_nn_funcs:
+#     if not funcs_name.startswith("_"):
+#         _wrapped_methods_to_patch.append((oneflow.nn.functional, funcs_name)) 
 
 def _find_proxy(*objects_to_search):
     """
@@ -868,6 +873,8 @@ class _Patcher(object):
         new_fn.__fx_already_patched = deduplicate  # type: ignore[attr-defined]
         if name not in frame_dict and hasattr(builtins, name):
             self.patches_made.append(_PatchedFnDel(frame_dict, name, None))
+        elif name not in frame_dict and hasattr(oneflow, name):
+            self.patches_made.append(_PatchedFnDel(frame_dict, name, None))
         elif getattr(frame_dict[name], "__fx_already_patched", False):
             return  # already patched, no need to do it again
         else:
@@ -916,8 +923,14 @@ def _patch_wrapped_functions(patcher: _Patcher):
     the listed global functions in the `_create_wrapped_func` wrapper.
     """
     for frame_dict, name in _wrapped_fns_to_patch:
-        if name not in frame_dict and hasattr(builtins, name):
-            orig_fn = getattr(builtins, name)
+        if name not in frame_dict:
+            if hasattr(builtins, name):
+                orig_fn = getattr(builtins, name)
+            elif hasattr(oneflow, name) or name.startswith('oneflow') and hasattr(oneflow, name.split('.')[-1]):
+                name = name.split('.')[-1]
+                orig_fn = getattr(oneflow, name)
+            else:
+                raise NameError("Cannot deal with the function %s."%name)
         else:
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
@@ -935,6 +948,22 @@ def _autowrap_check(
     """
     if patcher.visit_once(frame_dict):
         for name, value in frame_dict.items():
+            if (
+                not name.startswith("_")
+                and callable(value)
+                and id(value) in function_ids
+            ):
+                patcher.patch(frame_dict, name, _create_wrapped_func(value))
+                
+def _autowrap_check_oneflow(
+    patcher: _Patcher, dict: Dict[str, Any], frame_dict: Dict[str, Any], function_ids: Set[int]
+):
+    """
+    Some methods, like `math.sqrt` are common enough we want to automatically wrap them as we see them.
+    This method searches a scope for them and patches them if found.
+    """
+    if patcher.visit_once(dict):
+        for name, value in dict.items():
             if (
                 not name.startswith("_")
                 and callable(value)
