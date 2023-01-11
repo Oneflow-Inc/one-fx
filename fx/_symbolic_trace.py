@@ -255,14 +255,9 @@ class Tracer(TracerBase):
         }
         self._autowrap_function_ids: Set[int] = {
             id(value)
-            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules if m not in (oneflow, oneflow.nn.functional)])
-            if not name.startswith("_") and callable(value)
+            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
+            if not name.startswith("_") and callable(value) and not inspect.isclass(value)
         }
-        self._autowrap_function_ids.update({
-            id(value)
-            for name, value in chain(*[m.__dict__.items() for m in autowrap_modules if m in (oneflow, oneflow.nn.functional)])
-            if not name.startswith("_") and callable(value) and name[0].lower() == name[0]
-        })
         self._autowrap_function_ids.update(set([id(f) for f in autowrap_functions]))
 
         # Python modules to apply autowrap to at the start, in addition to
