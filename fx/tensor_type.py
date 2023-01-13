@@ -12,9 +12,9 @@ class TensorType:
     """
     TensorType defines a type for tensors, which consists of a list of dimensions.
     Example:
-        class M(torch.nn.Module):
+        class M(oneflow.nn.Module):
             def forward(self, x:TensorType((1,2,3, Dyn)), y:TensorType((1,2,3, Dyn))):
-                return torch.add(x, y)
+                return oneflow.add(x, y)
     """
 
     def __init__(self, dim):

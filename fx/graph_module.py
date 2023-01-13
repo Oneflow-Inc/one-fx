@@ -378,10 +378,6 @@ class GraphModule(oneflow.nn.Module):
         # Dictionary to store metadata
         self.meta : Dict[str, Any] = {}
 
-    # oneflowScript breaks trying to compile the graph setter because of the
-    # continued string literal. Issue here: https://github.com/pytorch/pytorch/issues/44842
-    #
-    # Shouldn't be an issue since these methods shouldn't be used in oneflowScript anyway
     __jit_unused_properties__ = ['graph']
 
     @property

@@ -20,11 +20,11 @@ from .importer import Importer
 
 __all__ = ["PackageImporter"]
 
+# TODO: Maybe delete it.
 
 # This is a list of imports that are implicitly allowed even if they haven't
 # been marked as extern. This is to work around the fact that Torch implicitly
 # depends on numpy and package can't track it.
-# https://github.com/pytorch/MultiPy/issues/46
 IMPLICIT_IMPORT_ALLOWLIST: Iterable[str] = [
     "numpy",
     "numpy.core",
@@ -39,7 +39,7 @@ class PackageImporter(Importer):
     """Importers allow you to load code written to packages by :class:`PackageExporter`.
     Code is loaded in a hermetic way, using files from the package
     rather than the normal python import system. This allows
-    for the packaging of PyTorch model code and data so that it can be run
+    for the packaging of Oneflow model code and data so that it can be run
     on a server or used in the future for transfer learning.
 
     The importer for packages ensures that code in the module can only be loaded from

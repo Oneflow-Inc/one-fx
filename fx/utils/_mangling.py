@@ -19,7 +19,7 @@ class PackageMangler:
         # Angle brackets are used so that there is almost no chance of
         # confusing this module for a real module. Plus, it is Python's
         # preferred way of denoting special modules.
-        self._mangle_parent = f"<torch_package_{self._mangle_index}>"
+        self._mangle_parent = f"<oneflow_package_{self._mangle_index}>"
 
     def mangle(self, name) -> str:
         assert len(name) != 0
@@ -42,7 +42,7 @@ class PackageMangler:
 
 
 def is_mangled(name: str) -> bool:
-    return bool(re.match(r"<torch_package_\d+>", name))
+    return bool(re.match(r"<oneflow_package_\d+>", name))
 
 
 def demangle(name: str) -> str:
@@ -52,7 +52,7 @@ def demangle(name: str) -> str:
     """
     if is_mangled(name):
         first, sep, last = name.partition(".")
-        # If there is only a base mangle prefix, e.g. '<torch_package_0>',
+        # If there is only a base mangle prefix, e.g. '<oneflow_package_0>',
         # then return an empty string.
         return last if len(sep) != 0 else ""
     return name

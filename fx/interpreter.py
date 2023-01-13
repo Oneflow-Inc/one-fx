@@ -37,15 +37,15 @@ class Interpreter:
 
     Example:
 
-        Suppose we want to swap all instances of ``torch.neg`` with
-        ``torch.sigmoid`` and vice versa (including their ``Tensor``
+        Suppose we want to swap all instances of ``oneflow.neg`` with
+        ``oneflow.sigmoid`` and vice versa (including their ``Tensor``
         method equivalents). We could subclass Interpreter like so::
 
             class NegSigmSwapInterpreter(Interpreter):
                 def call_function(self, target : Target,
                                   args : Tuple, kwargs : Dict) -> Any:
-                    if target == torch.sigmoid:
-                        return torch.neg(*args, **kwargs)
+                    if target == oneflow.sigmoid:
+                        return oneflow.neg(*args, **kwargs)
                     return super().call_function(n)
 
                 def call_method(self, target : Target,
@@ -56,12 +56,12 @@ class Interpreter:
                     return super().call_method(n)
 
             def fn(x):
-                return torch.sigmoid(x).neg()
+                return oneflow.sigmoid(x).neg()
 
-            gm = torch.fx.symbolic_trace(fn)
-            input = torch.randn(3, 4)
+            gm = fx.symbolic_trace(fn)
+            input = oneflow.randn(3, 4)
             result = NegSigmSwapInterpreter(gm).run(input)
-            torch.testing.assert_close(result, torch.neg(input).sigmoid())
+            oneflow.testing.assert_close(result, oneflow.neg(input).sigmoid())
 
     Args:
         module (GraphModule): The module to be executed
@@ -184,9 +184,7 @@ class Interpreter:
         next() on that iterator.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -214,9 +212,7 @@ class Interpreter:
         value from the ``Module`` hierarchy of ``self.module``.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -232,9 +228,7 @@ class Interpreter:
         Execute a ``call_function`` node and return the result.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -252,9 +246,7 @@ class Interpreter:
         Execute a ``call_method`` node and return the result.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node. 
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -274,9 +266,7 @@ class Interpreter:
         Execute a ``call_module`` node and return the result.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -298,9 +288,7 @@ class Interpreter:
         the value referenced by the ``output`` node and returns it.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
 
@@ -376,14 +364,14 @@ class Transformer(Interpreter):
 
     Example:
 
-        Suppose we want to swap all instances of ``torch.neg`` with
-        ``torch.sigmoid`` and vice versa (including their ``Tensor``
+        Suppose we want to swap all instances of ``oneflow.neg`` with
+        ``oneflow.sigmoid`` and vice versa (including their ``Tensor``
         method equivalents). We could subclass ``Transformer`` like so::
 
             class NegSigmSwapXformer(Transformer):
                 def call_function(self, target : 'Target', args : Tuple[Argument, ...], kwargs : Dict[str, Any]) -> Any:
-                    if target == torch.sigmoid:
-                        return torch.neg(*args, **kwargs)
+                    if target == oneflow.sigmoid:
+                        return oneflow.neg(*args, **kwargs)
                     return super().call_function(n)
 
                 def call_method(self, target : 'Target', args : Tuple[Argument, ...], kwargs : Dict[str, Any]) -> Any:
@@ -393,13 +381,13 @@ class Transformer(Interpreter):
                     return super().call_method(n)
 
             def fn(x):
-                return torch.sigmoid(x).neg()
+                return oneflow.sigmoid(x).neg()
 
-            gm = torch.fx.symbolic_trace(fn)
+            gm = fx.symbolic_trace(fn)
 
-            transformed : torch.nn.Module = NegSigmSwapXformer(gm).transform()
-            input = torch.randn(3, 4)
-            torch.testing.assert_close(transformed(input), torch.neg(input).sigmoid())
+            transformed : oneflow.nn.Module = NegSigmSwapXformer(gm).transform()
+            input = oneflow.randn(3, 4)
+            oneflow.testing.assert_close(transformed(input), oneflow.neg(input).sigmoid())
 
     Args:
         module (GraphModule): The ``Module`` to be transformed.
@@ -430,9 +418,7 @@ class Transformer(Interpreter):
         graph.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
         """
@@ -448,9 +434,7 @@ class Transformer(Interpreter):
         graph.
 
         Args:
-            target (Target): The call target for this node. See
-                `Node <https://pytorch.org/docs/master/fx.html#torch.fx.Node>`__ for
-                details on semantics
+            target (Target): The call target for this node.
             args (Tuple): Tuple of positional args for this invocation
             kwargs (Dict): Dict of keyword arguments for this invocation
         """

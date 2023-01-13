@@ -27,10 +27,11 @@ from typing import (
     Union,
 )
 
-import torch
-from torch.serialization import location_tag, normalize_storage_type
-from torch.types import Storage
-from torch.utils.hooks import RemovableHandle
+import oneflow
+# TODO: find correponding methods in oneflow or delete this file.
+from oneflow.serialization import location_tag, normalize_storage_type
+from oneflow.types import Storage
+from oneflow.utils.hooks import RemovableHandle
 
 from ._mangling import demangle, is_mangled
 from .importer import Importer, OrderedImporter, sys_importer
@@ -49,7 +50,7 @@ class PackageExporter:
 
     Imports can load this code in a hermetic way, such that code is loaded
     from the package rather than the normal Python import system. This allows
-    for the packaging of PyTorch model code and data so that it can be run
+    for the packaging of Oneflow model code and data so that it can be run
     on a server or used in the future for transfer learning.
 
     The code contained in packages is copied file-by-file from the original

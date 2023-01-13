@@ -5,12 +5,12 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/immutable_
 from typing import Any, Dict, Tuple, List
 
 from ._compatibility import compatibility
-from torch.utils._pytree import Context, _register_pytree_node
+from fx.utils._pytree import Context, _register_pytree_node
 
 __all__ = ["immutable_list", "immutable_dict"]
 
 _help_mutation = """\
-If you are attempting to modify the kwargs or args of a torch.fx.Node object,
+If you are attempting to modify the kwargs or args of a fx.Node object,
 instead create a new copy of it and assign the copy to the node:
     new_args = ... # copy and mutate args
     node.args = new_args

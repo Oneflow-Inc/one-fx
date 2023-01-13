@@ -35,7 +35,6 @@ class Importer(ABC):
     By default, you can figure out what module an object belongs by checking
     __module__ and importing the result using __import__ or importlib.import_module.
 
-    torch.package introduces module importers other than the default one.
     Each PackageImporter introduces a new namespace. Potentially a single
     name (e.g. 'foo.bar') is present in multiple namespaces.
 
@@ -193,8 +192,8 @@ class OrderedImporter(Importer):
     def __init__(self, *args):
         self._importers: List[Importer] = list(args)
 
-    def _is_torchpackage_dummy(self, module):
-        """Returns true iff this module is an empty PackageNode in a torch.package.
+    def _is_oneflow_package_dummy(self, module):
+        """Returns true iff this module is an empty PackageNode in a oneflow.package.
 
         If you intern `a.b` but never use `a` in your code, then `a` will be an
         empty module with no source. This can break cases where we are trying to
@@ -203,7 +202,7 @@ class OrderedImporter(Importer):
 
         See: https://github.com/pytorch/pytorch/pull/71520#issuecomment-1029603769
         """
-        if not getattr(module, "__torch_package__", False):
+        if not getattr(module, "__oneflow_package__", False):
             return False
         if not hasattr(module, "__path__"):
             return False
@@ -221,7 +220,7 @@ class OrderedImporter(Importer):
                 )
             try:
                 module = importer.import_module(module_name)
-                if self._is_torchpackage_dummy(module):
+                if self._is_oneflow_package_dummy(module):
                     continue
                 return module
             except ModuleNotFoundError as err:

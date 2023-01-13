@@ -14,10 +14,10 @@ import os
 
 __all__ = ['SubgraphMatcher', 'InternalMatch']
 
-# Set`PYTORCH_MATCHER_LOGLEVEL=INFO` to see debug logs
 def _init_logger():
     logger = logging.getLogger(__name__)
 
+    # TODO: modify to oneflow info.
     level = os.environ.get('PYTORCH_MATCHER_LOGLEVEL', 'WARNING').upper()
     logger.setLevel(level)
     console = logging.StreamHandler()
