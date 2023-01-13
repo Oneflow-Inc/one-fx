@@ -29,9 +29,9 @@ from typing import (
 
 import oneflow
 # TODO: find correponding methods in oneflow or delete this file.
-from oneflow.serialization import location_tag, normalize_storage_type
-from oneflow.types import Storage
-from oneflow.utils.hooks import RemovableHandle
+# from oneflow.serialization import location_tag, normalize_storage_type
+# from oneflow.types import Storage
+# from oneflow.utils.hooks import RemovableHandle
 
 from ._mangling import demangle, is_mangled
 from .importer import Importer, OrderedImporter, sys_importer
