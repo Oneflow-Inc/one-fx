@@ -14,11 +14,12 @@ class MyModule(oneflow.nn.Module):
 
     def forward(self, x):
         x = self.linear(x)
-        x = wrap_test_func(x)
+        x = oneflow.relu(x)
+        y = oneflow.ones([2, 3])
 
         if self.do_activation:
             x = oneflow.relu(x)
-        return x
+        return y
 
 without_activation = MyModule(do_activation=False)
 with_activation = MyModule(do_activation=True)

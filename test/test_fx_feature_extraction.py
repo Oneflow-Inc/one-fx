@@ -1,4 +1,3 @@
-import inspect
 import math
 import re
 import warnings
@@ -8,6 +7,7 @@ from itertools import chain
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, Mapping,Sequence
 import random
 import pytest
+import builtins
 
 import oneflow
 import flowvision
@@ -628,14 +628,14 @@ class IntermediateLayerGetter(nn.ModuleDict):
             the key of the dict, and the value of the dict is the name
             of the returned activation (which the user can specify).
     Examples::
-        >>> m = torchvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
+        >>> m = flowvision.models.resnet18(weights=ResNet18_Weights.DEFAULT)
         >>> # extract layer1 and layer3, giving as names `feat1` and feat2`
-        >>> new_m = torchvision.models._utils.IntermediateLayerGetter(m,
+        >>> new_m = flowvision.models._utils.IntermediateLayerGetter(m,
         >>>     {'layer1': 'feat1', 'layer3': 'feat2'})
-        >>> out = new_m(torch.rand(1, 3, 224, 224))
+        >>> out = new_m(oneflow.rand(1, 3, 224, 224))
         >>> print([(k, v.shape) for k, v in out.items()])
-        >>>     [('feat1', torch.Size([1, 64, 56, 56])),
-        >>>      ('feat2', torch.Size([1, 256, 14, 14]))]
+        >>>     [('feat1', oneflow.Size([1, 64, 56, 56])),
+        >>>      ('feat2', oneflow.Size([1, 256, 14, 14]))]
     """
 
     _version = 2
@@ -786,7 +786,8 @@ class TestFxFeatureExtraction:
         for k in ilg_out.keys():
             assert ilg_out[k].equal(fgn_out[k])
 
-    @pytest.mark.parametrize("model_name", get_available_models())
+    # @pytest.mark.parametrize("model_name", get_available_models())
+    # currently fx for jit is not supported
     def test_jit_forward_backward(self, model_name):
         set_rng_seed(0)
         model = flowvision.models.__dict__[model_name](**self.model_defaults).train()
@@ -908,4 +909,5 @@ class TestFxFeatureExtraction:
         out["leaf_module"].float().mean().backward()
 
 if __name__ == '__main__':
-    pytest.main()
+    with fx.global_wrap(len, builtins):
+        pytest.main()
