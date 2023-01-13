@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/utils/fuser_utils.py
+"""
+
 import copy
 from queue import SimpleQueue
 from typing import List, Dict, Tuple

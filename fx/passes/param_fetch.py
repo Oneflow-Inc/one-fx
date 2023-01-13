@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/param_fetch.py
+"""
+
 from fx.graph_module import GraphModule
 from typing import Any, Callable, Dict, List, Tuple, Type
 import oneflow

@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/infra/pass_manager.py
+"""
+
 import inspect
 import logging
 from queue import Queue

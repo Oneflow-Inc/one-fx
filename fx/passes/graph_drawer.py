@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/graph_drawer.py
+"""
+
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import hashlib

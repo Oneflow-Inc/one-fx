@@ -1,5 +1,5 @@
-"""Import mangling.
-See mangling.md for details.
+"""
+Modified from https://github.com/pytorch/pytorch/blob/992dad18552883224016d53429c48f2e932651cf/torch/package/_mangling.py
 """
 import re
 

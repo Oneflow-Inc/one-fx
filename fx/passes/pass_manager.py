@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/pass_manager.py
+"""
+
 from functools import wraps
 from inspect import unwrap
 from typing import Callable, List

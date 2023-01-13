@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/annotate.py
+"""
+
 from fx.proxy import Proxy
 from ._compatibility import compatibility
 

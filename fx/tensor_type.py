@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/tensor_type.py
+"""
+
 from fx.experimental.unification import Var  # type: ignore[attr-defined]
 
 from ._compatibility import compatibility

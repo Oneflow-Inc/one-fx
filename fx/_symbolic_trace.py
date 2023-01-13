@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/_symbolic_trace.py
+"""
+
 import builtins
 import copy
 import functools

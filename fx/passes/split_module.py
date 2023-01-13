@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/split_module.py
+"""
+
 import inspect
 from typing import Any, Callable, Dict, List, Optional
 

@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/infra/pass_base.py
+"""
+
 import abc
 from collections import namedtuple
 from typing import Optional

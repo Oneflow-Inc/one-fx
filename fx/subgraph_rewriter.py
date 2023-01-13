@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/subgraph_rewriter.py
+"""
+
 from .graph_module import GraphModule
 from .graph import Graph
 from .node import Node

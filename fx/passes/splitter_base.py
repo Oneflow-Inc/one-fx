@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/splitter_base.py
+"""
+
 import argparse
 import copy
 from collections import defaultdict

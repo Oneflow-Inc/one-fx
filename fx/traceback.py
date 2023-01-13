@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/traceback.py
+"""
+
 import traceback
 from contextlib import contextmanager
 from typing import Optional, List

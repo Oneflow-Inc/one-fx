@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/tools_common.py
+"""
+
 from typing import List, Tuple, Union, Dict, Any, Set, Mapping
 import collections
 from dataclasses import dataclass

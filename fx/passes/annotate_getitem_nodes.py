@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/annotate_getitem_nodes.py
+"""
+
 import operator
 
 import fx
