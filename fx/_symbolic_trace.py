@@ -46,7 +46,17 @@ internal_oneflow_funcs = [
     "framework",
 ]
 
-_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional, oneflow._C)
+_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional)
+_oneflow_no_wrapped_functions= (
+    oneflow.ones, 
+    oneflow.zeros, 
+    oneflow.ones_like, 
+    oneflow.zeros_like, 
+    oneflow.randn, 
+    oneflow.randn_like, 
+    oneflow.randint, oneflow.randint_like,
+    oneflow.device
+    )
 
 HAS_VARSTUFF = inspect.CO_VARARGS | inspect.CO_VARKEYWORDS
 
@@ -264,7 +274,7 @@ class Tracer(TracerBase):
         self._autowrap_function_ids: Set[int] = {
             id(value)
             for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
-            if not name.startswith("_") and callable(value) and not inspect.isclass(value)
+            if not name.startswith("_") and callable(value) and not inspect.isclass(value) and not value in _oneflow_no_wrapped_functions
         }
         self._autowrap_function_ids.update(set([id(f) for f in autowrap_functions]))
 
@@ -326,6 +336,30 @@ class Tracer(TracerBase):
         if isinstance(a, tuple) and hasattr(a, "_fields"):
             args = tuple(self.create_arg(elem) for elem in a)
             return self.create_node("call_function", a.__class__, args, {})
+        
+        # Tensors do not have a reliable string repr() from which they can be
+        # constructed (and we probably don't want to rely on that, either), so
+        # for any constant Tensor values we encounter, first search for if they
+        # are an attribute of some module in the module hierarchy. If so, emit
+        # a get_attr to retrieve that tensor. Otherwise, we'll store away the
+        # tensor value into a special attribute on the Module s.t. we can
+        # retrieve it with a get_attr.
+        if isinstance(a, oneflow.Tensor):
+            qualname: Optional[str] = self.tensor_attrs.get(a)
+
+            # Tensor was not found in the Module hierarchy, stow it away in a
+            # special attribute and set the qualname to refer to that
+            if not qualname:
+                i = 0
+                while True:
+                    qualname = f"_tensor_constant{i}"
+                    if not hasattr(self.root, qualname):
+                        break
+                    i += 1
+                self.tensor_attrs[a] = qualname
+                setattr(self.root, qualname, a)
+
+            return self.create_node("get_attr", qualname, (), {})
 
         if type(a) in _proxyable_classes:
             # This is an instance of a proxyable class for which we did not
@@ -671,6 +705,21 @@ class Tracer(TracerBase):
 
             tracer_cls: Optional[Type["Tracer"]] = getattr(self, "__class__", None)
             self.graph = Graph(tracer_cls=tracer_cls)
+            
+            # When we encounter a Tensor value that's not a parameter, we look if it
+            # is some other attribute on the model. Construct a dict mapping Tensor
+            # values to the qualified name here for efficiency. This is used downstream
+            # in create_arg
+            self.tensor_attrs: Dict[oneflow.Tensor, str] = {}
+
+            def collect_tensor_attrs(m: oneflow.nn.Module, prefix_atoms: List[str]):
+                for k, v in m.__dict__.items():
+                    if isinstance(v, oneflow.Tensor):
+                        self.tensor_attrs[v] = ".".join(prefix_atoms + [k])
+                for k, v in m.named_children():
+                    collect_tensor_attrs(v, prefix_atoms + [k])
+
+            collect_tensor_attrs(self.root, [])
 
             assert isinstance(fn, FunctionType)
 
@@ -719,7 +768,7 @@ class Tracer(TracerBase):
                     if module is oneflow:
                         dict = {}
                         for name, value in module.__dict__.items():
-                            if not isinstance(value, oneflow.nn.Module):
+                            if not isinstance(value, oneflow.nn.Module) and not value in _oneflow_no_wrapped_functions:
                                 dict[name] = value
                         _autowrap_check_oneflow(
                             patcher, dict, module.__dict__, self._autowrap_function_ids
@@ -759,6 +808,7 @@ class Tracer(TracerBase):
 # List of pairs of (global dict, function name) functions
 # to patch for the purposes of the wrap() API.
 _wrapped_fns_to_patch: List[Tuple[dict, str]] = []
+_global_wrapped_fns_to_patch = {}
 
 # List of methods on classes to wrap (class type, function name)
 # this currently only works for Tensor.* methods that aren't traced properly
@@ -927,11 +977,6 @@ def _patch_wrapped_functions(patcher: _Patcher):
         if name not in frame_dict:
             if hasattr(builtins, name):
                 orig_fn = getattr(builtins, name)
-            # elif hasattr(oneflow, name):
-            #     orig_fn = getattr(oneflow, name)
-            # elif name.startswith('oneflow') and hasattr(oneflow, name.split('.')[-1]):
-            #     name = name.split('.')[-1]
-            #     orig_fn = getattr(oneflow, name)
             else:
                 is_oneflow_wrapped_function, func = is_oneflow_wrapped_function_and_try_get(name)
                 if is_oneflow_wrapped_function:
@@ -941,6 +986,21 @@ def _patch_wrapped_functions(patcher: _Patcher):
         else:
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
+    
+    for _, fns in _global_wrapped_fns_to_patch.items():
+        for frame_dict, name in fns:
+            if name not in frame_dict:
+                if hasattr(builtins, name):
+                    orig_fn = getattr(builtins, name)
+                else:
+                    is_oneflow_wrapped_function, func = is_oneflow_wrapped_function_and_try_get(name)
+                    if is_oneflow_wrapped_function:
+                        orig_fn = func
+                    else:
+                        raise NameError("Cannot deal with the function %s."%name)
+            else:
+                orig_fn = frame_dict[name]
+            patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
 
     for cls, name in _wrapped_methods_to_patch:
         patcher.patch_method(cls, name, _create_wrapped_method(cls, name))
@@ -1040,6 +1100,54 @@ def wrap(fn_or_name: Union[str, Callable]):
     _wrapped_fns_to_patch.append((f.f_globals, fn_name))
     return fn_or_name
 
+class global_wrap:
+    '''
+    Wrap a function globally.
+    '''
+    @compatibility(is_backward_compatible=True)
+    def __init__(self, fn_or_name: Union[str, Callable, List], module):
+        self.module = module
+        if not isinstance(fn_or_name, List):
+            self.fn_dict = self.get_fn_dict([fn_or_name])
+        else:
+            self.fn_dict = self.get_fn_dict(fn_or_name)
+    
+    @compatibility(is_backward_compatible=True)
+    def get_fn_dict(self, fns_or_names):
+        res = {}
+        for fn_or_name in fns_or_names:
+            if not callable(fn_or_name) and not isinstance(fn_or_name, str):
+                raise RuntimeError(
+                    "Unsupported type for global function! Must be either a callable or "
+                    "string name"
+                )
+            if callable(fn_or_name):
+                assert not isinstance(fn_or_name, str)  # to make mypy happy
+                fn_name = fn_or_name.__name__
+            else:
+                assert isinstance(
+                    fn_or_name, str
+                ), "fn_or_name must be a global function or string name"
+                fn_name = fn_or_name
+            if not hasattr(self.module, fn_name):
+                raise NameError("Function %s does not belong to %s"%(fn_name, str(self.module)))
+            else:
+                res.update({fn_name: getattr(self.module, fn_name)})
+        return res
+
+    
+    @compatibility(is_backward_compatible=True)
+    def __enter__(self):
+        fns = []
+        for fn_name in self.fn_dict.keys():
+            fns.append((self.module.__dict__, fn_name))
+        _global_wrapped_fns_to_patch.update({self: fns})
+    
+    @compatibility(is_backward_compatible=True)
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        for fn_name, fn in self.fn_dict.items():
+            self.module.__dict__[fn_name] = fn
+        del _global_wrapped_fns_to_patch[self]
 
 @compatibility(is_backward_compatible=True)
 def symbolic_trace(
