@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/immutable_collections.py
+"""
+
 from typing import Any, Dict, Tuple, List
 
 from ._compatibility import compatibility

@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/utils/matcher_utils.py
+"""
+
 from dataclasses import dataclass, field
 from collections import defaultdict
 import copy

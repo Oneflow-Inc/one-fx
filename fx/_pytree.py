@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/_pytree.py
+"""
+
 from typing import Callable, Any, Tuple, List, Dict, Type, NamedTuple
 from fx.utils._pytree import PyTree, TreeSpec, LeafSpec
 from collections import namedtuple

@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/graph_manipulation.py
+"""
+
 from typing import Any, Dict, List, NamedTuple, Optional
 
 import oneflow

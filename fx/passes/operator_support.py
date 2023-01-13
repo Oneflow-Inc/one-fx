@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/operator_support.py
+"""
+
 import abc
 import typing as t
 

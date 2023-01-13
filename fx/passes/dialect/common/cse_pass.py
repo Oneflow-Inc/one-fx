@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/dialect/cse_pass.py
+"""
+
 from typing import Dict, Tuple, Any
 
 import oneflow

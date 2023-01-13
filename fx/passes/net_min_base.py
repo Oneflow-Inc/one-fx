@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/net_min_base.py
+"""
+
 import logging
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple

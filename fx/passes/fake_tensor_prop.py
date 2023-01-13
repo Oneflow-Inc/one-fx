@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/fake_tensor_prop.py
+"""
+
 from typing import Optional
 
 import fx

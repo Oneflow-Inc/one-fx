@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/infra/partitioner.py
+"""
+
 from typing import Dict, List, Set, Iterable, Sequence, Optional
 
 from fx.passes.utils.fuser_utils import fuse_by_partitions

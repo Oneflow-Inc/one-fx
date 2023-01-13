@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/992dad18552883224016d53429c48f2e932651cf/torch/package/importer.py
+"""
+
 import importlib
 from abc import ABC, abstractmethod
 from pickle import (  # type: ignore[attr-defined]  # type: ignore[attr-defined]

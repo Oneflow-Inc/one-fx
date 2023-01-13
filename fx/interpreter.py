@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/interpreter.py
+"""
+
 from .graph_module import GraphModule
 from .graph import Graph
 from .node import Argument, Node, Target, map_arg, map_aggregate

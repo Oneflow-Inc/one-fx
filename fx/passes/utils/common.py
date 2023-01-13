@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/utils/common.py
+"""
+
 from oneflow.nn import Module
 
 from fx.graph_module import GraphModule

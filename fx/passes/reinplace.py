@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/reinplace.py
+"""
+
 import oneflow
 import fx
 from fx import Node

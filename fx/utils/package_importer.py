@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/992dad18552883224016d53429c48f2e932651cf/torch/package/package_importer.py
+"""
+
 import builtins
 import importlib
 import importlib.machinery

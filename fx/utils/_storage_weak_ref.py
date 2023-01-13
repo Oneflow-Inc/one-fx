@@ -1,4 +1,8 @@
 
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/multiprocessing/reductions.py
+"""
+
 class StorageWeakRef(object):
     r"""A weak reference to a Storage.
 

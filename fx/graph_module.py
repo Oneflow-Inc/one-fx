@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/graph_module.py
+"""
+
 import oneflow
 import oneflow.nn as nn
 # import oneflow.overrides

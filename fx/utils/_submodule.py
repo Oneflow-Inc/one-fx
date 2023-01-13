@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/multiprocessing/reductions.py
+"""
+
 from typing import List
 import oneflow
 

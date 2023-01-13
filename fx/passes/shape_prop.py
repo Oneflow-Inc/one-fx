@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/shape_prop.py
+"""
+
 import oneflow
 import fx
 import traceback

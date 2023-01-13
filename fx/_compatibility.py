@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/_compatibility.py
+"""
+
 from typing import Any, Dict
 import textwrap
 

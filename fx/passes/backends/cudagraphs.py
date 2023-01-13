@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/backends/cuda_graphs.py
+"""
+
 import oneflow
 import fx
 from fx.passes.infra.partitioner import CapabilityBasedPartitioner

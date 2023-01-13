@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/proxy.py
+"""
+
 import dis
 import oneflow
 import inspect
