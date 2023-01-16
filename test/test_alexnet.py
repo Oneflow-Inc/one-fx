@@ -4,7 +4,7 @@ import numpy as np
 import unittest
 import sys
 sys.path.append(r'../one-fx')
-from fx import symbolic_trace
+from onefx import symbolic_trace
 import onefx
 from oneflow.test_utils.automated_test_util import *
 

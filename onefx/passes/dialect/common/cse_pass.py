@@ -9,8 +9,8 @@ import onefx
 from onefx.passes.infra.pass_base import PassBase, PassResult
 from onefx.utils._pytree import tree_flatten
 
-from fx import GraphModule, Graph
-from fx import Node
+from onefx import GraphModule, Graph
+from onefx import Node
 
 aten = oneflow.ops.aten
 

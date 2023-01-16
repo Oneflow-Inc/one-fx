@@ -4,7 +4,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/rei
 
 import oneflow
 import onefx
-from fx import Node
+from onefx import Node
 from onefx._compatibility import compatibility
 from onefx.utils._pytree import tree_map, tree_flatten, tree_map_only
 from onefx.utils._storage_weak_ref import StorageWeakRef

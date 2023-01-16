@@ -5,7 +5,7 @@ import onefx
 import flowvision.models as models
 import statistics, tabulate, time
 from typing import Any, Dict, List
-from fx import Interpreter
+from onefx import Interpreter
 
 class ProfilingInterpreter(Interpreter):
     def __init__(self, mod : oneflow.nn.Module):

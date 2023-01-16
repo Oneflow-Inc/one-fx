@@ -21,6 +21,8 @@ import math
 import warnings
 import inspect
 
+import onefx
+
 __all__ = ["PythonCode", "CodeGen", "Graph"]
 
 if TYPE_CHECKING:
