@@ -3,7 +3,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/rei
 """
 
 import oneflow
-import fx
+import onefx
 from fx import Node
 from onefx._compatibility import compatibility
 from onefx.utils._pytree import tree_map, tree_flatten, tree_map_only

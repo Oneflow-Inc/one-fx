@@ -1,7 +1,7 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import flowvision.models as models
 import statistics, tabulate, time
 from typing import Any, Dict, List

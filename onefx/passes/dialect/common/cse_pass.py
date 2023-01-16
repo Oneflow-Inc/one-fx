@@ -5,7 +5,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/dia
 from typing import Dict, Tuple, Any
 
 import oneflow
-import fx
+import onefx
 from onefx.passes.infra.pass_base import PassBase, PassResult
 from onefx.utils._pytree import tree_flatten
 

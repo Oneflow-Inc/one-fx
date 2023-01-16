@@ -4,7 +4,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/ann
 
 import operator
 
-import fx
+import onefx
 
 
 def annotate_getitem_nodes(graph: onefx.Graph) -> None:

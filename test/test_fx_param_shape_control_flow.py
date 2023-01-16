@@ -4,7 +4,7 @@ import unittest
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import numpy as np
 
 class MyModuleBase(oneflow.nn.Module):

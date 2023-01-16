@@ -5,7 +5,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/spl
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 
-import fx
+import onefx
 from onefx.graph import map_arg
 from .tools_common import NodeList
 from onefx._compatibility import compatibility

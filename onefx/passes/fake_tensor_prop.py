@@ -4,7 +4,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/fak
 
 from typing import Optional
 
-import fx
+import onefx
 from fx import Node
 from onefx._compatibility import compatibility
 from oneflow._subclasses.fake_tensor import FakeTensorMode

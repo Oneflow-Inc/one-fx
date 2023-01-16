@@ -1,7 +1,7 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 
 def wrap_test_func(x):
     return x

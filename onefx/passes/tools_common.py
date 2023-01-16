@@ -7,7 +7,7 @@ import collections
 from dataclasses import dataclass
 
 import oneflow
-import fx
+import onefx
 from onefx.node import _get_qualified_name
 from onefx._compatibility import compatibility
 

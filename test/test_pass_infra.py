@@ -3,7 +3,7 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import unittest
 
 from onefx.passes.infra.pass_base import PassResult

@@ -14,7 +14,7 @@ import flowvision
 import oneflow.nn as nn
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 from onefx.graph_module import _copy_attr
 
 

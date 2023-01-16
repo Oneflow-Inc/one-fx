@@ -10,7 +10,7 @@ from typing import NamedTuple, Sequence, Iterable, Any, List, Dict, Optional, Tu
 import logging
 
 import oneflow
-import fx
+import onefx
 from onefx.passes.graph_manipulation import get_size_of_node
 from onefx.node import map_arg
 from onefx._compatibility import compatibility

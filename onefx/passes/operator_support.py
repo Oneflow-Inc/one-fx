@@ -6,7 +6,7 @@ import abc
 import typing as t
 
 import oneflow
-import fx
+import onefx
 from onefx._compatibility import compatibility
 from .shape_prop import TensorMetadata
 from .tools_common import get_node_target, CALLABLE_NODE_OPS

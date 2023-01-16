@@ -663,7 +663,7 @@ class Graph:
     .. code-block:: python
 
         import oneflow
-        import fx
+        import onefx
 
         class MyModule(oneflow.nn.Module):
             def __init__(self):

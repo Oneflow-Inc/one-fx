@@ -6,7 +6,7 @@ import inspect
 from typing import Any, Callable, Dict, List, Optional
 
 import oneflow
-import fx
+import onefx
 from onefx._compatibility import compatibility
 from onefx.graph_module import GraphModule
 

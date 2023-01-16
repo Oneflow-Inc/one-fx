@@ -4,7 +4,7 @@ from typing import Set, Type
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import unittest
 
 def assert_equal(a, b):

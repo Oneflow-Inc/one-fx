@@ -6,7 +6,7 @@ import copy
 from queue import SimpleQueue
 from typing import List, Dict, Tuple
 
-import fx
+import onefx
 from onefx.graph_module import GraphModule
 from onefx.graph import Graph
 from onefx.node import Node

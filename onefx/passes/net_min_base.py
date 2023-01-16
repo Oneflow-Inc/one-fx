@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import oneflow
-import fx
+import onefx
 from onefx._compatibility import compatibility
 from onefx.node import map_arg
 

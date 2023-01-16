@@ -3,7 +3,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/bac
 """
 
 import oneflow
-import fx
+import onefx
 from onefx.passes.infra.partitioner import CapabilityBasedPartitioner
 from onefx.passes.operator_support import OperatorSupport
 from onefx.passes.tools_common import CALLABLE_NODE_OPS

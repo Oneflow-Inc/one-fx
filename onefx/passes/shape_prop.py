@@ -3,7 +3,7 @@ Modified from https://github.com/pytorch/pytorch/blob/master/torch/fx/passes/sha
 """
 
 import oneflow
-import fx
+import onefx
 import traceback
 
 from onefx.node import Node, map_aggregate

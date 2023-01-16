@@ -6,7 +6,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import hashlib
 import oneflow
-import fx
+import onefx
 from typing import Dict, Any, TYPE_CHECKING
 from onefx.node import _get_qualified_name, _format_arg
 from onefx.passes.shape_prop import TensorMetadata

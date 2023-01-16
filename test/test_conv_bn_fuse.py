@@ -1,6 +1,6 @@
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import oneflow
 import oneflow.nn as nn
 import numpy as np
