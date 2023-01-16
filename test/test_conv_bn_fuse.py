@@ -43,7 +43,7 @@ def _parent_name(target : str) -> Tuple[str, str]:
     *parent, name = target.rsplit('.', 1)
     return parent[0] if parent else '', name
 
-def replace_node_module(node: fx.Node, modules: Dict[str, Any], new_module: oneflow.nn.Module):
+def replace_node_module(node: onefx.Node, modules: Dict[str, Any], new_module: oneflow.nn.Module):
     assert(isinstance(node.target, str))
     parent_name, name = _parent_name(node.target)
     setattr(modules[parent_name], name, new_module)
@@ -55,7 +55,7 @@ def fuse(model: oneflow.nn.Module) -> oneflow.nn.Module:
     # obtain a `GraphModule`. This is a representation of our original model
     # that is functionally identical to our original model, except that we now
     # also have a graph representation of our forward pass.
-    fx_model: fx.GraphModule = fx.symbolic_trace(model)
+    fx_model: onefx.GraphModule = onefx.symbolic_trace(model)
     modules = dict(fx_model.named_modules())
 
     # The primary representation for working with FX are the `Graph` and the

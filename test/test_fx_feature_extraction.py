@@ -15,15 +15,15 @@ import oneflow.nn as nn
 import sys
 sys.path.append(r'../one-fx')
 import fx
-from fx.graph_module import _copy_attr
+from onefx.graph_module import _copy_attr
 
 
 __all__ = ["create_feature_extractor", "get_graph_node_names"]
 
 
-class LeafModuleAwareTracer(fx.Tracer):
+class LeafModuleAwareTracer(onefx.Tracer):
     """
-    An fx.Tracer that allows the user to specify a set of leaf modules, ie.
+    An onefx.Tracer that allows the user to specify a set of leaf modules, ie.
     modules that are not to be traced through. The resulting graph ends up
     having single nodes referencing calls to the leaf modules' forward methods.
     """
@@ -69,7 +69,7 @@ class NodePathTracer(LeafModuleAwareTracer):
 
     def call_module(self, m: oneflow.nn.Module, forward: Callable, args, kwargs):
         """
-        Override of `fx.Tracer.call_module`
+        Override of `onefx.Tracer.call_module`
         This override:
         1) Stores away the qualified name of the caller for restoration later
         2) Adds the qualified name of the caller to
@@ -89,8 +89,8 @@ class NodePathTracer(LeafModuleAwareTracer):
             self.current_module_qualname = old_qualname
 
     def create_proxy(
-        self, kind: str, target: fx.node.Target, args, kwargs, name=None, type_expr=None, *_
-    ) -> fx.proxy.Proxy:
+        self, kind: str, target: onefx.node.Target, args, kwargs, name=None, type_expr=None, *_
+    ) -> onefx.proxy.Proxy:
         """
         Override of `Tracer.create_proxy`. This override intercepts the recording
         of every operation and stores away the current traced module's qualified
@@ -100,7 +100,7 @@ class NodePathTracer(LeafModuleAwareTracer):
         self.node_to_qualname[proxy.node] = self._get_node_qualname(self.current_module_qualname, proxy.node)
         return proxy
 
-    def _get_node_qualname(self, module_qualname: str, node: fx.node.Node) -> str:
+    def _get_node_qualname(self, module_qualname: str, node: onefx.node.Node) -> str:
         node_qualname = module_qualname
 
         if node.op != "call_module":
@@ -226,7 +226,7 @@ def get_graph_node_names(
         model (nn.Module): model for which we'd like to print node names
         tracer_kwargs (dict, optional): a dictionary of keyword arguments for
             ``NodePathTracer`` (they are eventually passed onto
-            `one-fx.Tracer`_).
+            `one-onefx.Tracer`_).
             By default it will be set to wrap and make leaf nodes all flowvision ops:
             {"autowrap_modules": (math, flowvision.ops,),"leaf_modules": _get_leaf_modules_for_ops(),}
             WARNING: In case the user provides tracer_kwargs, above default arguments will be appended to the user
@@ -260,25 +260,25 @@ def get_graph_node_names(
     return train_nodes, eval_nodes
 
 
-class DualGraphModule(fx.GraphModule):
+class DualGraphModule(onefx.GraphModule):
     """
-    A derivative of `fx.GraphModule`. Differs in the following ways:
+    A derivative of `onefx.GraphModule`. Differs in the following ways:
     - Requires a train and eval version of the underlying graph
     - Copies submodules according to the nodes of both train and eval graphs.
     - Calling train(mode) switches between train graph and eval graph.
     """
 
     def __init__(
-        self, root: oneflow.nn.Module, train_graph: fx.Graph, eval_graph: fx.Graph, class_name: str = "GraphModule"
+        self, root: oneflow.nn.Module, train_graph: onefx.Graph, eval_graph: onefx.Graph, class_name: str = "GraphModule"
     ):
         """
         Args:
             root (nn.Module): module from which the copied module hierarchy is
                 built
-            train_graph (fx.Graph): the graph that should be used in train mode
-            eval_graph (fx.Graph): the graph that should be used in eval mode
+            train_graph (onefx.Graph): the graph that should be used in train mode
+            eval_graph (onefx.Graph): the graph that should be used in eval mode
         """
-        super(fx.GraphModule, self).__init__()
+        super(onefx.GraphModule, self).__init__()
 
         self.__class__.__name__ = class_name
 
@@ -297,7 +297,7 @@ class DualGraphModule(fx.GraphModule):
         self.train()
         self.graph = train_graph
 
-        # (borrowed from fx.GraphModule):
+        # (borrowed from onefx.GraphModule):
         # Store the Tracer class responsible for creating a Graph separately as part of the
         # GraphModule state, except when the Tracer is defined in a local namespace.
         # Locally defined Tracers are not pickleable. This is needed because oneflow.package will
@@ -333,7 +333,7 @@ def create_feature_extractor(
     eval_return_nodes: Optional[Union[List[str], Dict[str, str]]] = None,
     tracer_kwargs: Optional[Dict[str, Any]] = None,
     suppress_diff_warning: bool = False,
-) -> fx.GraphModule:
+) -> onefx.GraphModule:
     """
     Creates a new graph module that returns intermediate nodes from a given
     model as dictionary with user specified keys as strings, and the requested
@@ -386,7 +386,7 @@ def create_feature_extractor(
             and `return_nodes` should not be specified.
         tracer_kwargs (dict, optional): a dictionary of keyword arguments for
             ``NodePathTracer`` (which passes them onto it's parent class
-            `one-fx.Tracer`_).
+            `one-onefx.Tracer`_).
             By default it will be set to wrap and make leaf nodes all flowvision ops:
             {"autowrap_modules": (math, flowvision.ops,),"leaf_modules": _get_leaf_modules_for_ops(),}
             WARNING: In case the user provides tracer_kwargs, above default arguments will be appended to the user
@@ -481,7 +481,7 @@ def create_feature_extractor(
         graph = tracer.trace(model)
 
         name = model.__class__.__name__ if isinstance(model, nn.Module) else model.__name__
-        graph_module = fx.GraphModule(tracer.root, graph, name)
+        graph_module = onefx.GraphModule(tracer.root, graph, name)
 
         available_nodes = list(tracer.node_to_qualname.values())
         # FIXME We don't know if we should expect this to happen
@@ -909,5 +909,5 @@ class TestFxFeatureExtraction:
         out["leaf_module"].float().mean().backward()
 
 if __name__ == '__main__':
-    with fx.global_wrap(len, builtins):
+    with onefx.global_wrap(len, builtins):
         pytest.main()

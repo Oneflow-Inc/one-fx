@@ -50,7 +50,7 @@ class TestAlexNet(unittest.TestCase):
     def test_alexnet(test_case):
         m = AlexNet()
         m = m.eval()
-        gm: fx.GraphModule = symbolic_trace(m)
+        gm: onefx.GraphModule = symbolic_trace(m)
         input = flow.randn(1, 3, 224, 224)
         assert np.allclose(gm(input).numpy(), m(input).numpy(), equal_nan=True)
 

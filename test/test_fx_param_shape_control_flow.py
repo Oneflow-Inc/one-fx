@@ -91,11 +91,11 @@ class TestConstParamShapeInControlFlow(unittest.TestCase):
         """
         x = oneflow.randn(10, 5)
         assert np.allclose(mm_only_mod(x).numpy(), oneflow.mm(x, mm_only_mod.get_mul_matrix()).numpy())
-        tracer = fx.Tracer(param_shapes_constant=True)
+        tracer = onefx.Tracer(param_shapes_constant=True)
         traced_graph = tracer.trace(mm_only_mod)
 
         # verify the graph module calculates the same result
-        graph_mod_mm = fx.GraphModule(mm_only_mod, traced_graph)
+        graph_mod_mm = onefx.GraphModule(mm_only_mod, traced_graph)
         assert np.allclose(graph_mod_mm(x).numpy(), oneflow.mm(x, mm_only_mod.get_mul_matrix()).numpy())
 
 
@@ -104,11 +104,11 @@ class TestConstParamShapeInControlFlow(unittest.TestCase):
         x = oneflow.randn(10, 15)
         assert np.allclose(relu_mod(x).numpy(), oneflow.relu(oneflow.mm(x, relu_mod.get_mul_matrix())).numpy())
 
-        tracer2 = fx.Tracer(param_shapes_constant=True)
+        tracer2 = onefx.Tracer(param_shapes_constant=True)
         traced_graph2 = tracer2.trace(relu_mod)
 
         # verify the graph module calculates the same result
-        graph_mod_relu = fx.GraphModule(relu_mod, traced_graph2)
+        graph_mod_relu = onefx.GraphModule(relu_mod, traced_graph2)
         assert np.allclose(graph_mod_relu(x).numpy(), oneflow.relu(oneflow.mm(x, relu_mod.get_mul_matrix())).numpy())
 
 
