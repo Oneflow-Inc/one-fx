@@ -5,7 +5,7 @@ import oneflow
 import typing
 import sys
 sys.path.append(r'../one-fx')
-from fx import symbolic_trace
+from onefx import symbolic_trace
 
 class A:
     def __call__(self, x: oneflow.Tensor):

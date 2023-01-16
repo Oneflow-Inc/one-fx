@@ -3,11 +3,11 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import unittest
 
-from fx.passes.infra.pass_base import PassResult
-from fx.passes.infra.pass_manager import (
+from onefx.passes.infra.pass_base import PassResult
+from onefx.passes.infra.pass_manager import (
     PassManager,
     this_before_that_pass_constraint,
     _topological_sort_passes,
@@ -46,7 +46,7 @@ class TestPassManager(unittest.TestCase):
         """
 
         m = AddModule()
-        traced_m = fx.symbolic_trace(m)
+        traced_m = onefx.symbolic_trace(m)
         pm = PassManager(passes=[replace_add_with_mul_pass, replace_mul_with_div_pass], steps=5)
 
         pm.validate_constraints()
@@ -54,7 +54,7 @@ class TestPassManager(unittest.TestCase):
 
         res = pm(traced_m)
         modified_m = res.graph_module
-        assert isinstance(modified_m, fx.GraphModule)
+        assert isinstance(modified_m, onefx.GraphModule)
 
         # Check that all call_function nodes are divs
         for node in modified_m.graph.nodes:
@@ -80,7 +80,7 @@ class TestPassManager(unittest.TestCase):
         Tests that users can add in check functions correctly
         """
         m = AddModule()
-        traced_m = fx.symbolic_trace(m)
+        traced_m = onefx.symbolic_trace(m)
         pm = PassManager(passes=[replace_add_with_mul_pass, replace_mul_with_div_pass])
 
         def check_div_target(graph_module):
@@ -167,7 +167,7 @@ class TestPassManager(unittest.TestCase):
             raise RuntimeError("bad")
 
         m = AddModule()
-        traced_m = fx.symbolic_trace(m)
+        traced_m = onefx.symbolic_trace(m)
         pm = PassManager(passes=[replace_add_with_mul_pass, replace_mul_with_div_pass, pass_fail])
 
         # Comment out this line to see the actual error message

@@ -1,11 +1,11 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import flowvision.models as models
 import statistics, tabulate, time
 from typing import Any, Dict, List
-from fx import Interpreter
+from onefx import Interpreter
 
 class ProfilingInterpreter(Interpreter):
     def __init__(self, mod : oneflow.nn.Module):
@@ -13,7 +13,7 @@ class ProfilingInterpreter(Interpreter):
         # we're going to do it in the constructor. As a result, the
         # user can pass in any ``Module`` without having to worry about
         # symbolic tracing APIs
-        gm = fx.symbolic_trace(mod)
+        gm = onefx.symbolic_trace(mod)
         super().__init__(gm)
 
         # We are going to store away two things here:
@@ -25,7 +25,7 @@ class ProfilingInterpreter(Interpreter):
         # 2. A map from ``Node`` to a list of times (in seconds) that
         #    node took to run. This can be seen as similar to (1) but
         #    for specific sub-parts of the model.
-        self.runtimes_sec : Dict[fx.Node, List[float]] = {}
+        self.runtimes_sec : Dict[onefx.Node, List[float]] = {}
 
     ######################################################################
     # Next, let's override our first method: ``run()``. ``Interpreter``'s ``run``
@@ -51,7 +51,7 @@ class ProfilingInterpreter(Interpreter):
     # can measure and record the time taken for each individual call in
     # the model.
 
-    def run_node(self, n : fx.Node) -> Any:
+    def run_node(self, n : onefx.Node) -> Any:
         # Record the time we started running the op
         t_start = time.time()
         # Run the op by delegating back into Interpreter.run_node()

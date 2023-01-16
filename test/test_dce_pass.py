@@ -4,7 +4,7 @@ from typing import Set, Type
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import unittest
 
 def assert_equal(a, b):
@@ -12,7 +12,7 @@ def assert_equal(a, b):
         raise "Must be equal."
 
 class TestDCE(unittest.TestCase):
-    def _has_nodes_without_users(self, m: fx.GraphModule):
+    def _has_nodes_without_users(self, m: onefx.GraphModule):
         for node in m.graph.nodes:
             if node.is_impure():
                 continue
@@ -20,7 +20,7 @@ class TestDCE(unittest.TestCase):
                 return True
         return False
 
-    def _get_num_placeholders(self, m: fx.GraphModule) -> int:
+    def _get_num_placeholders(self, m: onefx.GraphModule) -> int:
         count = 0
         for node in m.graph.nodes:
             if node.op == "placeholder":
@@ -33,13 +33,13 @@ class TestDCE(unittest.TestCase):
         expect_dce_changes: bool,
         modules_to_be_leafs: Set[Type] = None,
     ):
-        class TestTracer(fx.Tracer):
+        class TestTracer(onefx.Tracer):
             def is_leaf_module(self, m, qualname):
                 if modules_to_be_leafs and type(m) in modules_to_be_leafs:
                     return True
                 return super().trace(m, qualname)
 
-        traced: fx.GraphModule = fx.GraphModule(m, TestTracer().trace(m))
+        traced: onefx.GraphModule = onefx.GraphModule(m, TestTracer().trace(m))
         print(str(traced.graph))
 
         # Verify there are nodes without users (if expected).
@@ -171,5 +171,5 @@ class TestDCE(unittest.TestCase):
         )
 
 if __name__ == '__main__':
-    fx.wrap(assert_equal)
+    onefx.wrap(assert_equal)
     unittest.main()

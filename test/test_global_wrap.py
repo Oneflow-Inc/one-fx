@@ -1,18 +1,18 @@
 import oneflow
 import sys
 sys.path.append(r'../one-fx')
-import fx
+import onefx
 import builtins
 
 import modules
 from modules import MyModule
 from utils import add_n
 
-with fx.global_wrap(len, builtins):
+with onefx.global_wrap(len, builtins):
     without_activation = MyModule(do_activation=False)
     with_activation = MyModule(do_activation=True)
 
-    traced_without_activation = fx.symbolic_trace(without_activation)
+    traced_without_activation = onefx.symbolic_trace(without_activation)
     print(traced_without_activation.code)
     """
     wrap("len")
@@ -30,7 +30,7 @@ with fx.global_wrap(len, builtins):
         return add_1
     """
 
-    traced_with_activation = fx.symbolic_trace(with_activation)
+    traced_with_activation = onefx.symbolic_trace(with_activation)
     print(traced_with_activation.code)
     """
     wrap("len")

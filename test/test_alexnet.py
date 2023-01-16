@@ -4,8 +4,8 @@ import numpy as np
 import unittest
 import sys
 sys.path.append(r'../one-fx')
-from fx import symbolic_trace
-import fx
+from onefx import symbolic_trace
+import onefx
 from oneflow.test_utils.automated_test_util import *
 
 
@@ -50,7 +50,7 @@ class TestAlexNet(unittest.TestCase):
     def test_alexnet(test_case):
         m = AlexNet()
         m = m.eval()
-        gm: fx.GraphModule = symbolic_trace(m)
+        gm: onefx.GraphModule = symbolic_trace(m)
         input = flow.randn(1, 3, 224, 224)
         assert np.allclose(gm(input).numpy(), m(input).numpy(), equal_nan=True)
 
