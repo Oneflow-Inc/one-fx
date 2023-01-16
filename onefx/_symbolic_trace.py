@@ -92,9 +92,9 @@ class ProxyableClassMeta(type):
     symbolically traceable. For example::
 
         import oneflow
-        import oneflow.fx
+        import onefx
 
-        class TensorPair(metaclass=oneflow.onefx.ProxyableClassMeta):
+        class TensorPair(metaclass=onefx.ProxyableClassMeta):
             def __init__(self, left, right):
                 self.left, self.right = left, right
 
@@ -116,7 +116,7 @@ class ProxyableClassMeta(type):
         y = oneflow.randn(5, 3)
         ref_out = use_tensor_pair_ctor(x, y)
 
-        traced = oneflow.onefx.symbolic_trace(use_tensor_pair_ctor)
+        traced = onefx.symbolic_trace(use_tensor_pair_ctor)
         print(traced.code)
         '''
         def forward(self, x : __main___TensorPair, y : oneflow.Tensor):
@@ -224,7 +224,7 @@ class Tracer(TracerBase):
     """Tracer(autowrap_modules=(math,), autowrap_functions=())
 
     ``Tracer`` is the class that implements the symbolic tracing functionality
-    of ``oneflow.onefx.symbolic_trace``. A call to ``symbolic_trace(m)`` is equivalent
+    of ``onefx.symbolic_trace``. A call to ``symbolic_trace(m)`` is equivalent
     to ``Tracer().trace(m)``.
 
     Tracer can be subclassed to override various behaviors of the tracing
@@ -1054,7 +1054,7 @@ def wrap(fn_or_name: Union[str, Callable]):
         def my_custom_function(x, y):
             return x * x + y * y
 
-        oneflow.onefx.wrap('my_custom_function')
+        onefx.wrap('my_custom_function')
 
         def fn_to_be_traced(x, y):
             # When symbolic tracing, the below call to my_custom_function will be inserted into
@@ -1064,7 +1064,7 @@ def wrap(fn_or_name: Union[str, Callable]):
     This function can also equivalently be used as a decorator::
 
         # foo/bar/baz.py
-        @oneflow.onefx.wrap
+        @onefx.wrap
         def my_custom_function(x, y):
             return x * x + y * y
 
