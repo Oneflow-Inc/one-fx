@@ -41,6 +41,8 @@ _side_effectful_functions: Set[Callable] = {
 # this is fixed on master, WAR for 1.5
 def _find_module_of_method(orig_method: Callable[..., Any]) -> str:
     name = orig_method.__name__
+    if hasattr(oneflow, name):
+        return oneflow.__name__
     module = orig_method.__module__
     if module is not None:
         return module
