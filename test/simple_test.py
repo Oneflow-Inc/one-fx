@@ -14,7 +14,6 @@ class MyModule(oneflow.nn.Module):
 
     def forward(self, x):
         x = self.linear(x)
-        x = oneflow.relu(x)
         y = oneflow.ones([2, 3])
 
         if self.do_activation:
@@ -29,16 +28,18 @@ print(traced_without_activation.code)
 """
 def forward(self, x):
     linear = self.linear(x);  x = None
-    return linear
+    _tensor_constant0 = self._tensor_constant0
+    return _tensor_constant0
 """
 
 traced_with_activation = onefx.symbolic_trace(with_activation)
 print(traced_with_activation.code)
 """
-wrap("oneflow._oneflow_internal._C.relu")
+wrap("oneflow.relu")
 
 def forward(self, x):
     linear = self.linear(x);  x = None
-    relu = oneflow._oneflow_internal._C.relu(linear);  linear = None
-    return relu
+    relu = oneflow.relu(linear);  linear = None
+    _tensor_constant0 = self._tensor_constant0
+    return _tensor_constant0
 """

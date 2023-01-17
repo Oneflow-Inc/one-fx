@@ -1,7 +1,5 @@
 import oneflow
 import sys
-sys.path.append(r'../one-fx')
-from test.utils.basic import add_n
 
 class MyModule(oneflow.nn.Module):
     def __init__(self, do_activation : bool = False):
@@ -15,4 +13,4 @@ class MyModule(oneflow.nn.Module):
 
         if self.do_activation:
             x = oneflow.relu(x)
-        return add_n(x, y)
+        return x + y
