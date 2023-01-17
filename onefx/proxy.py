@@ -7,6 +7,7 @@ import oneflow
 import inspect
 import operator
 import traceback
+import onefx
 
 from .graph import magic_methods, reflectable_magic_methods, Graph
 from typing import Tuple, Dict, Optional, Iterable, Any, Iterator, Callable
@@ -326,8 +327,8 @@ class Proxy:
         def find_tracer(a):
             if isinstance(a, cls):
                 tracers[a.tracer] = None
-        oneflow.onefx.node.map_aggregate(args, find_tracer)
-        oneflow.onefx.node.map_aggregate(kwargs, find_tracer)
+        onefx.node.map_aggregate(args, find_tracer)
+        onefx.node.map_aggregate(kwargs, find_tracer)
 
         if len(tracers) > 1:
             raise RuntimeError(f'Found multiple different tracers {list(tracers.keys())} while '

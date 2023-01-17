@@ -310,7 +310,7 @@ if HAS_PYDOT:
                 if node.op == "call_module":
                     leaf_module = self._get_leaf_node(graph_module, node)
 
-                    if not ignore_parameters_and_buffers and not isinstance(leaf_module, oneflow.onefx.GraphModule):
+                    if not ignore_parameters_and_buffers and not isinstance(leaf_module, onefx.GraphModule):
                         get_module_params_or_buffers()
 
             for node in graph_module.graph.nodes:

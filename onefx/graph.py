@@ -69,7 +69,7 @@ _register_custom_builtin('nan', 'from math import nan', math.nan)
 _register_custom_builtin('NoneType', 'NoneType = type(None)', type(None))
 _register_custom_builtin('oneflow', 'import oneflow', oneflow)
 _register_custom_builtin('device', 'from oneflow import device', oneflow.device)
-_register_custom_builtin('fx_pytree', 'import oneflow.onefx._pytree as fx_pytree', fx_pytree)
+_register_custom_builtin('fx_pytree', 'import onefx._pytree as fx_pytree', fx_pytree)
 _register_custom_builtin('pytree', 'import oneflow.utils._pytree as pytree', pytree)
 
 
@@ -677,7 +677,7 @@ class Graph:
                 return oneflow.topk(oneflow.sum(self.linear(x + self.linear.weight).relu(), dim=-1), 3)
 
         m = MyModule()
-        gm = oneflow.onefx.symbolic_trace(m)
+        gm = onefx.symbolic_trace(m)
 
     Will produce the following Graph::
 
@@ -1124,8 +1124,8 @@ class Graph:
         the graph of node to the graph of self. Example::
 
             # Copying all the nodes in `g` into `new_graph`
-            g : oneflow.onefx.Graph = ...
-            new_graph = oneflow.onefx.graph()
+            g : onefx.Graph = ...
+            new_graph = onefx.graph()
             value_remap = {}
             for node in g.nodes:
                 value_remap[node] = new_graph.node_copy(node, lambda n : value_remap[n])
