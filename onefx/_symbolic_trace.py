@@ -50,7 +50,7 @@ internal_oneflow_funcs = [
     "framework",
 ]
 
-_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional)
+_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional, oneflow._oneflow_internal._C)
 _oneflow_no_wrapped_functions= (
     oneflow.ones, 
     oneflow.zeros, 
@@ -812,7 +812,7 @@ class Tracer(TracerBase):
 # List of pairs of (global dict, function name) functions
 # to patch for the purposes of the wrap() API.
 _wrapped_fns_to_patch: List[Tuple[dict, str]] = []
-_global_wrapped_fns_to_patch = {}
+_global_wrap_oneflow_cached_dict: dict = {}
 
 # List of methods on classes to wrap (class type, function name)
 # this currently only works for Tensor.* methods that aren't traced properly
@@ -990,21 +990,6 @@ def _patch_wrapped_functions(patcher: _Patcher):
         else:
             orig_fn = frame_dict[name]
         patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
-    
-    for _, fns in _global_wrapped_fns_to_patch.items():
-        for frame_dict, name in fns:
-            if name not in frame_dict:
-                if hasattr(builtins, name):
-                    orig_fn = getattr(builtins, name)
-                else:
-                    is_oneflow_wrapped_function, func = is_oneflow_wrapped_function_and_try_get(name)
-                    if is_oneflow_wrapped_function:
-                        orig_fn = func
-                    else:
-                        raise NameError("Cannot deal with the function %s."%name)
-            else:
-                orig_fn = frame_dict[name]
-            patcher.patch(frame_dict, name, _create_wrapped_func(orig_fn))
 
     for cls, name in _wrapped_methods_to_patch:
         patcher.patch_method(cls, name, _create_wrapped_method(cls, name))
@@ -1151,6 +1136,39 @@ class global_wrap:
         frame_dict = self.module.__dict__
         for fn_name, fn in self.fn_dict.items():
             frame_dict[fn_name] = fn
+
+def _get_all_oneflow_cached_dict():
+    if _global_wrap_oneflow_cached_dict:
+        return _global_wrap_oneflow_cached_dict
+    for module in _oneflow_default_wrapped_packages:
+        for name, value in module.__dict__.items():
+            if not name.startswith("_") and callable(value) and not name in _global_wrap_oneflow_cached_dict \
+                and not inspect.isclass(value) and not value in _oneflow_no_wrapped_functions:
+                _global_wrap_oneflow_cached_dict[name] = _create_wrapped_func(value)
+    
+    return _global_wrap_oneflow_cached_dict
+    
+class global_wrap_oneflow_all:
+    '''
+    Wrap a function globally.
+    '''
+    @compatibility(is_backward_compatible=True)
+    def __init__(self):
+        self.cached_dict = _get_all_oneflow_cached_dict()
+    
+    @compatibility(is_backward_compatible=True)
+    def __enter__(self):
+        self.patches_made = []
+        for module in _oneflow_default_wrapped_packages:
+            for name, value in module.__dict__.items():
+                if name in self.cached_dict:
+                    self.patches_made.append(_PatchedFnSetItem(module.__dict__, name, value))
+                    module.__dict__[name] = self.cached_dict[name]
+    
+    @compatibility(is_backward_compatible=True)
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        while self.patches_made:
+            self.patches_made.pop().revert()
 
 @compatibility(is_backward_compatible=True)
 def symbolic_trace(
