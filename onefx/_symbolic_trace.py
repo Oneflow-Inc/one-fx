@@ -769,7 +769,7 @@ class Tracer(TracerBase):
                 _patch_wrapped_functions(patcher)
                 _autowrap_check(patcher, fn_globals, self._autowrap_function_ids)
                 for module in self._autowrap_search:
-                    if module is oneflow:
+                    if module in _oneflow_default_wrapped_packages:
                         dict = {}
                         for name, value in module.__dict__.items():
                             if not isinstance(value, oneflow.nn.Module) and not value in _oneflow_no_wrapped_functions:
@@ -1142,16 +1142,15 @@ class global_wrap:
     
     @compatibility(is_backward_compatible=True)
     def __enter__(self):
-        fns = []
-        for fn_name in self.fn_dict.keys():
-            fns.append((self.module.__dict__, fn_name))
-        _global_wrapped_fns_to_patch.update({self: fns})
+        frame_dict = self.module.__dict__
+        for name, orig_fn in self.fn_dict.items():
+            frame_dict[name] = _create_wrapped_func(orig_fn)
     
     @compatibility(is_backward_compatible=True)
     def __exit__(self, exc_type, exc_value, exc_tb):
+        frame_dict = self.module.__dict__
         for fn_name, fn in self.fn_dict.items():
-            self.module.__dict__[fn_name] = fn
-        del _global_wrapped_fns_to_patch[self]
+            frame_dict[fn_name] = fn
 
 @compatibility(is_backward_compatible=True)
 def symbolic_trace(
