@@ -1140,11 +1140,13 @@ class global_wrap:
 def _get_all_oneflow_cached_dict():
     if _global_wrap_oneflow_cached_dict:
         return _global_wrap_oneflow_cached_dict
+    hash_table = set()
     for module in _oneflow_default_wrapped_packages:
         for name, value in module.__dict__.items():
             if not name.startswith("_") and callable(value) and not name in _global_wrap_oneflow_cached_dict \
-                and not inspect.isclass(value) and not value in _oneflow_no_wrapped_functions:
+                and not id(value) in hash_table and not inspect.isclass(value) and not value in _oneflow_no_wrapped_functions:
                 _global_wrap_oneflow_cached_dict[name] = _create_wrapped_func(value)
+                hash_table.add(id(value))
     
     return _global_wrap_oneflow_cached_dict
     
