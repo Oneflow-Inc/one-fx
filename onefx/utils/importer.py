@@ -199,8 +199,6 @@ class OrderedImporter(Importer):
         empty module with no source. This can break cases where we are trying to
         re-package an object after adding a real dependency on `a`, since
         OrderedImportere will resolve `a` to the dummy package and stop there.
-
-        See: https://github.com/pytorch/pytorch/pull/71520#issuecomment-1029603769
         """
         if not getattr(module, "__oneflow_package__", False):
             return False

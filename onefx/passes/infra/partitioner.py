@@ -184,7 +184,7 @@ class CapabilityBasedPartitioner:
         # filter out single node partitions
         if not self.allows_single_node_partition:
             logger.debug("Filtering out single node partitions...")
-            default_non_compute_ops = {"oneflow.ops.aten.view", "_operator.getitem"}
+            default_non_compute_ops = {"_operator.getitem"}
             non_compute_ops = default_non_compute_ops.union(set(self.non_compute_ops))
             partitions_to_remove: List[int] = []
             for id, partition in partitions_by_id.items():
