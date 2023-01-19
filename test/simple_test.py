@@ -3,9 +3,6 @@ import sys
 sys.path.append(r'../one-fx')
 import onefx
 
-def wrap_test_func(x):
-    return x
-
 class MyModule(oneflow.nn.Module):
     def __init__(self, do_activation : bool = False):
         super().__init__()

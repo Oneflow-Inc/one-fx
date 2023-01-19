@@ -3,6 +3,8 @@ Modified from https://github.com/pytorch/examples/blob/main/fx/replace_op.py
 '''
 
 import oneflow
+import sys
+sys.path.append(r'../one-fx')
 from onefx import symbolic_trace
 import operator
 
