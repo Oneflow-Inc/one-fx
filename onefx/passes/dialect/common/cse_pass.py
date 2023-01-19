@@ -12,13 +12,17 @@ from onefx.utils._pytree import tree_flatten
 from onefx import GraphModule, Graph
 from onefx import Node
 
-aten = oneflow.ops.aten
+# aten = oneflow.ops.aten
 
 
 # stateful ops are banned from CSE
-rand_ops = set([aten.dropout, aten._fused_dropout, aten._standard_gamma, aten.bernoulli, aten.multinomial, aten.native_dropout, aten.normal, aten.poisson, aten.binomial, aten.rrelu, aten.rand_like, aten.rand, aten.randint, aten.randn, aten.randperm])  # noqa: E501
+rand_ops = set([
+    # aten.dropout, aten._fused_dropout, aten._standard_gamma, aten.bernoulli, aten.multinomial, aten.native_dropout, aten.normal, aten.poisson, aten.binomial, aten.rrelu, aten.rand_like, aten.rand, aten.randint, aten.randn, aten.randperm
+    ])  # noqa: E501
 
-inplace_ops = set([aten.add_, aten.sub_, aten.mul_, aten.div_, aten.pow_, aten.lerp_, aten.relu_, aten.sigmoid_, aten.tanh_])  # noqa: E501
+inplace_ops = set([
+    # aten.add_, aten.sub_, aten.mul_, aten.div_, aten.pow_, aten.lerp_, aten.relu_, aten.sigmoid_, aten.tanh_
+    ])  # noqa: E501
 
 
 @onefx._compatibility.compatibility(is_backward_compatible=False)
