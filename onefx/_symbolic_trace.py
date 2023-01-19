@@ -8,6 +8,7 @@ import functools
 import inspect
 import math
 import os
+import sys
 import warnings
 from itertools import chain
 from types import CodeType, FunctionType, ModuleType
@@ -30,9 +31,9 @@ import onefx.utils._pytree as pytree
 
 from ._compatibility import compatibility
 from .graph import _PyTreeCodeGen, _PyTreeInfo, Graph
-from .graph_module import GraphModule
 from .node import Argument, base_types, map_aggregate
 from .proxy import ParameterProxy, Proxy, TracerBase
+from .graph_module import GraphModule
 
 internal_oneflow_funcs = [
     "FunctionConfig",
@@ -1091,20 +1092,49 @@ def wrap(fn_or_name: Union[str, Callable]):
 
 class global_wrap:
     '''
-    Wrap a function globally.
+    Wrap functions globally in a scope.
     '''
     @compatibility(is_backward_compatible=True)
-    def __init__(self, fn_or_name: Union[str, Callable, List], module):
-        self.module = module
-        if not isinstance(fn_or_name, List):
-            self.fn_dict = self.get_fn_dict([fn_or_name])
+    def __init__(self, fn_or_name: Union[str, Callable, list, dict]):
+        '''
+        The input should be one of the followings:
+        1. function name string.
+        2. function itself.
+        3. list of functions and function names.
+        4. A dict mapped from function name to function. If the function name is the global name, 
+            then it will be regarded as suggested module.
+        '''
+        if isinstance(fn_or_name, (dict, list)):
+            self.fns_or_names = fn_or_name
         else:
-            self.fn_dict = self.get_fn_dict(fn_or_name)
+            self.fns_or_names = [fn_or_name]
+    
+    def _find_module_of_function(orig_func: Callable[..., Any], suggested_module_name = None) -> str:
+        name = orig_func.__name__
+        if suggested_module_name is not None:
+            module = sys.modules.get(suggested_module_name)
+            if module is not None and hasattr(module, name):
+                return module
+        module = sys.modules.get(orig_func.__module__)
+        if module is not None:
+            return module
+        for guess in [oneflow, oneflow.nn.functional, oneflow._oneflow_internal, oneflow._C, oneflow._oneflow_internal._C]:
+            if getattr(guess, name, None) is orig_func:
+                return guess
+        raise RuntimeError(f'cannot find module for {orig_func}')
     
     @compatibility(is_backward_compatible=True)
-    def get_fn_dict(self, fns_or_names):
-        res = {}
-        for fn_or_name in fns_or_names:
+    def __enter__(self):
+        self.patches_made = []
+        if isinstance(self.fns_or_names, dict):
+            for global_name, orig_fn in self.fns_or_names.items():
+                fn_name = orig_fn.__name__
+                module = global_wrap._find_module_of_function(orig_fn, '.'.join(global_name.split('.')[:-1]))
+                frame_dict = module.__dict__
+                self.patches_made.append(_PatchedFnSetItem(frame_dict, fn_name, frame_dict[fn_name]))
+                frame_dict[fn_name] = _create_wrapped_func(orig_fn)
+            return
+        for fn_or_name in self.fns_or_names:
             if not callable(fn_or_name) and not isinstance(fn_or_name, str):
                 raise RuntimeError(
                     "Unsupported type for global function! Must be either a callable or "
@@ -1113,29 +1143,27 @@ class global_wrap:
             if callable(fn_or_name):
                 assert not isinstance(fn_or_name, str)  # to make mypy happy
                 fn_name = fn_or_name.__name__
+                module = global_wrap._find_module_of_function(fn_or_name)
+                orig_fn = fn_or_name
             else:
                 assert isinstance(
                     fn_or_name, str
                 ), "fn_or_name must be a global function or string name"
-                fn_name = fn_or_name
-            if not hasattr(self.module, fn_name):
-                raise NameError("Function %s does not belong to %s"%(fn_name, str(self.module)))
-            else:
-                res.update({fn_name: getattr(self.module, fn_name)})
-        return res
-
-    
-    @compatibility(is_backward_compatible=True)
-    def __enter__(self):
-        frame_dict = self.module.__dict__
-        for name, orig_fn in self.fn_dict.items():
-            frame_dict[name] = _create_wrapped_func(orig_fn)
+                sub_names = fn_or_name.split('.')
+                fn_name = sub_names[-1]
+                module = sys.modules.get('.'.join(sub_names)[:-1]) if len(sub_names) > 1 else builtins
+                if module is None or not hasattr(module, fn_name):
+                    raise NameError("Function %s does not belong to %s"%(fn_name, str(self.module)))
+                orig_fn = getattr(module, fn_name)
+            
+            frame_dict = module.__dict__
+            self.patches_made.append(_PatchedFnSetItem(frame_dict, fn_name, frame_dict[fn_name]))
+            frame_dict[fn_name] = _create_wrapped_func(orig_fn)
     
     @compatibility(is_backward_compatible=True)
     def __exit__(self, exc_type, exc_value, exc_tb):
-        frame_dict = self.module.__dict__
-        for fn_name, fn in self.fn_dict.items():
-            frame_dict[fn_name] = fn
+        while self.patches_made:
+            self.patches_made.pop().revert()
 
 def _get_all_oneflow_cached_dict():
     if _global_wrap_oneflow_cached_dict:
@@ -1152,7 +1180,7 @@ def _get_all_oneflow_cached_dict():
     
 class global_wrap_oneflow_all:
     '''
-    Wrap a function globally.
+    Globally wrap all the oneflow functions. It should only be used to solve some incompitable problems temporarily.
     '''
     @compatibility(is_backward_compatible=True)
     def __init__(self):
