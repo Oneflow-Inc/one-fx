@@ -13,6 +13,7 @@ from ._compatibility import compatibility
 from onefx.utils.importer import Importer, sys_importer
 from onefx.utils.package_importer import PackageImporter
 from onefx.utils.package_exporter import PackageExporter
+import onefx
 import copy
 import itertools
 import sys
@@ -630,7 +631,7 @@ class {module_name}(oneflow.nn.Module):
         if isinstance(self._graph._codegen, _PyTreeCodeGen):
             self._in_spec = self._graph._codegen.pytree_info.in_spec
             self._out_spec = self._graph._codegen.pytree_info.out_spec
-        python_code = self._graph.python_code(root_module='self')
+        python_code, wrapped_fns = self._graph.python_code(root_module='self')
         self._code = python_code.src
 
         cls = type(self)
@@ -648,7 +649,8 @@ class {module_name}(oneflow.nn.Module):
             cls._wrapped_call = _WrappedCall(cls, cls_call)  # type: ignore[attr-defined]
 
         def call_wrapped(self, *args, **kwargs):
-            return self._wrapped_call(self, *args, **kwargs)
+            with onefx.global_wrap(wrapped_fns):
+                return self._wrapped_call(self, *args, **kwargs)
 
         cls.__call__ = call_wrapped
 
@@ -707,7 +709,7 @@ class {module_name}(oneflow.nn.Module):
         """
         Return the Python code generated for current GraphModule and its children GraphModules
         """
-        verbose_python_code = self._graph.python_code(root_module='self', verbose=True)
+        verbose_python_code, _ = self._graph.python_code(root_module='self', verbose=True)
         module_code = verbose_python_code.src
         module_code = module_code.lstrip('\n')
         module_code = f"class {self._get_name()}(oneflow.nn.Module):\n" + module_code

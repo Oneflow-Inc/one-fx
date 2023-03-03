@@ -325,11 +325,11 @@ class CodeGen(object):
         """
         return []
 
-    def _gen_python_code(self, nodes, root_module: str, namespace: _Namespace, *, verbose: bool = False) -> PythonCode:
+    def _gen_python_code(self, nodes, root_module: str, namespace: _Namespace, *, verbose: bool = False) -> Tuple[PythonCode, list]:
         free_vars: List[str] = []
         body: List[str] = []
         globals_: Dict[str, Any] = {}
-        wrapped_fns: Dict[str, None] = {}
+        wrapped_fns: Dict[str, Callable] = {}
 
         # Wrap string in list to pass by reference
         maybe_return_annotation : List[str] = ['']
@@ -552,7 +552,7 @@ class CodeGen(object):
                     return
                 body.append(f'{repr(node)}{maybe_type_annotation} = {global_name}({_format_args(node.args, node.kwargs)})')
                 if node.meta.get('is_wrapped', False):
-                    wrapped_fns.setdefault(global_name)
+                    wrapped_fns[global_name] = node.target
                 return
             elif node.op == 'call_module':
                 assert isinstance(node.target, str)
@@ -607,7 +607,7 @@ class CodeGen(object):
 
 {prologue}
 {code}"""
-        return PythonCode(fn_code, globals_)
+        return PythonCode(fn_code, globals_), wrapped_fns
 
 
 # Ideally, we'd like to refactor all of the pytree logic into this codegen
@@ -1242,7 +1242,7 @@ class Graph:
         with override_node_repr(self):
             return self._python_code(root_module, namespace, verbose=verbose)
 
-    def _python_code(self, root_module: str, namespace: _Namespace, *, verbose: bool = False) -> PythonCode:
+    def _python_code(self, root_module: str, namespace: _Namespace, *, verbose: bool = False) -> Tuple[PythonCode, List]:
         return self._codegen._gen_python_code(self.nodes, root_module, namespace, verbose=verbose)
 
 
