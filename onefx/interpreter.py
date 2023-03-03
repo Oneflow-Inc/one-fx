@@ -334,6 +334,15 @@ class Interpreter:
         kwargs = self.map_nodes_to_values(n.kwargs, n)
         assert isinstance(kwargs, dict)
         return args, kwargs
+    
+    def set_arg_for_node(self, n: Node, new_args):
+        def set_arg(n_arg: Node):
+            if n_arg not in self.env:
+                raise RuntimeError(f'Node {n} referenced nonexistent value {n_arg}! Run Graph.lint() '
+                                   f'to diagnose such issues')
+            self.env[n_arg] = new_args
+            return None
+        map_arg(n.args, set_arg)
 
     @compatibility(is_backward_compatible=True)
     def map_nodes_to_values(self, args : Argument, n : Node) -> Argument:
