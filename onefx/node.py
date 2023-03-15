@@ -20,7 +20,7 @@ __all__ = ['Node', 'map_arg', 'map_aggregate']
 
 # Memory-format and Layout are str
 BaseArgumentTypes = Union[str, int, float, bool, complex, oneflow.dtype,
-                          oneflow.Tensor, oneflow.device]
+                          oneflow.Tensor, oneflow.device, oneflow.sbp.sbp, oneflow.placement]
 base_types = BaseArgumentTypes.__args__  # type: ignore[attr-defined]
 
 Target = Union[Callable[..., Any], str]

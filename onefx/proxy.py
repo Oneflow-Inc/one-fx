@@ -142,6 +142,8 @@ class TracerBase:
             # intermediate tuple and unpack it into the NamedTuple constructor
             args = tuple(self.create_arg(elem) for elem in a)
             return type(a)(*args)  # type: ignore[arg-type]
+        elif isinstance(a, oneflow.Size):
+            return oneflow.Size(a)
         elif isinstance(a, (tuple, list)):
             return type(a)(self.create_arg(elem) for elem in a)
         elif isinstance(a, dict):
@@ -361,7 +363,6 @@ class Attribute(Proxy):
 
     def __call__(self, *args, **kwargs):
         return self.tracer.create_proxy('call_method', self.attr, (self.root,) + args, kwargs)
-
 
 @compatibility(is_backward_compatible=False)
 class ParameterProxy(Proxy):
