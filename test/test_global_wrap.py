@@ -4,10 +4,9 @@ sys.path.append(r'../one-fx')
 import onefx
 import builtins
 
-import modules
 from modules import MyModule
 
-with onefx.global_wrap(len, builtins):
+with onefx.global_wrap(len):
     without_activation = MyModule(do_activation=False)
     with_activation = MyModule(do_activation=True)
 
@@ -38,3 +37,7 @@ with onefx.global_wrap(len, builtins):
         add = relu + len_1;  relu = len_1 = None
         return add
     """
+    
+    len_id = id(len)
+    
+assert len_id != id(len)
