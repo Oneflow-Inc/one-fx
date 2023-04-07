@@ -51,7 +51,8 @@ internal_oneflow_funcs = [
     "framework",
 ]
 
-_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional, oneflow._oneflow_internal._C)
+
+_oneflow_default_wrapped_packages = (oneflow, oneflow._C, oneflow.nn.functional, oneflow.nn.modules.constant, oneflow.nn.modules.arange)
 _oneflow_no_wrapped_functions= (
     oneflow.ones, 
     oneflow.zeros, 
@@ -85,6 +86,17 @@ def is_oneflow_wrapped_function_and_try_get(name):
         elif hasattr(package, possible_real_name):
             return True, getattr(package, possible_real_name)
     return False, None
+
+class fx_no_wrap_context:
+    def __init__(self, tracer) -> None:
+        self.tracer = tracer
+        
+    def __enter__(self):
+        self.orig_value = self.tracer.fx_no_wrap
+        self.tracer.fx_no_wrap = True
+
+    def __exit__(self, type, value, traceback):
+        self.tracer.fx_no_wrap = self.orig_value
     
 @compatibility(is_backward_compatible=True)
 class ProxyableClassMeta(type):
@@ -242,6 +254,7 @@ class Tracer(TracerBase):
         autowrap_modules: Tuple[ModuleType] = (math, ),
         autowrap_functions: Tuple[Callable, ...] = (),
         param_shapes_constant: bool = False,
+        not_wrapped_oneflow_functions = None
     ) -> None:
         # This method's signature is overridden by the first line of this class'
         # docstring. If this method's signature is modified, the signature that
@@ -267,19 +280,29 @@ class Tracer(TracerBase):
                 will be evaluted directly, rather than returning a new Proxy value
                 for an attribute access. Backward compatibility for this parameter
                 is guaranteed.
+            
+            not_wrapped_oneflow_functions(list): By default the not wrapped functions
+                are those in `_oneflow_no_wrapped_functions`. But sometimes you may
+                want to wrap some of them, then you can specify them with this param.
         """
 
         super().__init__()
         
         assert isinstance(autowrap_modules, (tuple, list))
         autowrap_modules += _oneflow_default_wrapped_packages
+        
+        if not_wrapped_oneflow_functions is not None:
+            assert isinstance(not_wrapped_oneflow_functions, list)
+            self.not_wrapped_oneflow_functions = not_wrapped_oneflow_functions
+        else:
+            self.not_wrapped_oneflow_functions = _oneflow_no_wrapped_functions
 
         # Functions we will eagerly wrap when we see them while tracing
         # this captures both `math.sqrt()` and `from math import sqrt` automatically
         self._autowrap_function_ids: Set[int] = {
             id(value)
             for name, value in chain(*[m.__dict__.items() for m in autowrap_modules])
-            if not name.startswith("_") and callable(value) and not inspect.isclass(value) and not value in _oneflow_no_wrapped_functions
+            if not name.startswith("_") and callable(value) and not inspect.isclass(value) and not value in self.not_wrapped_oneflow_functions
         }
         self._autowrap_function_ids.update(set([id(f) for f in autowrap_functions]))
 
@@ -290,6 +313,8 @@ class Tracer(TracerBase):
         self.param_shapes_constant = param_shapes_constant
 
         self.submodule_paths: Optional[Dict[oneflow.nn.Module, str]] = None
+        
+        self.fx_no_wrap = False
 
     @compatibility(is_backward_compatible=True)
     def create_arg(self, a: Any) -> "Argument":
@@ -597,7 +622,7 @@ class Tracer(TracerBase):
                     elif type(x) == type(None):
                         args = (
                             out,
-                            f"{name} has been specialized to have value None but got another value",
+                            f"{name} has been specialized to have value None but got another value {out}",
                         )
                         self.create_proxy("call_function", _assert_is_none, args, {})
                     else:
@@ -773,7 +798,7 @@ class Tracer(TracerBase):
                     if module in _oneflow_default_wrapped_packages:
                         dict = {}
                         for name, value in module.__dict__.items():
-                            if not isinstance(value, oneflow.nn.Module) and not value in _oneflow_no_wrapped_functions:
+                            if not isinstance(value, oneflow.nn.Module) and not value in self.not_wrapped_oneflow_functions:
                                 dict[name] = value
                         _autowrap_check_oneflow(
                             patcher, dict, module.__dict__, self._autowrap_function_ids
@@ -859,13 +884,14 @@ def _create_wrapped_func(orig_fn):
         """
         proxy = _find_proxy(args, kwargs)
         if proxy is not None:
+            if proxy.tracer.fx_no_wrap:
+                return orig_fn(*args, **kwargs)
             return_proxy = proxy.tracer.create_proxy(
                 "call_function", orig_fn, args, kwargs
             )
             return_proxy.node.meta["is_wrapped"] = True
             return return_proxy
         return orig_fn(*args, **kwargs)
-
     return wrapped
 
 
@@ -882,9 +908,11 @@ def _create_wrapped_method(cls, name):
         """
         proxy = _find_proxy(args, kwargs)
         if proxy is not None:
+            if proxy.tracer.fx_no_wrap:
+                return orig_fn(*args, **kwargs)
             return proxy.tracer.create_proxy("call_method", name, args, kwargs)
         return orig_fn(*args, **kwargs)
-
+    
     return wrapped
 
 

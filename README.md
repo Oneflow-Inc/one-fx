@@ -13,6 +13,8 @@ A toolkit for developers to simplify the transformation of nn.Module instances. 
 pip install onefx
 ```
 
+[Oneflow](https://github.com/Oneflow-Inc/oneflow) has now add `one-fx` as default dependency. You can also install oneflow and use it as `oneflow.fx`.
+
 ## usage
 
 The following code shows the basic usage. For more examples, please refer to `https://github.com/Oneflow-Inc/one-fx/tree/main/onefx/exmaples`.
@@ -20,9 +22,6 @@ The following code shows the basic usage. For more examples, please refer to `ht
 ```python
 import oneflow
 import onefx as fx
-
-def wrap_test_func(x):
-    return x
 
 class MyModule(oneflow.nn.Module):
     def __init__(self, do_activation : bool = False):
@@ -66,4 +65,4 @@ def forward(self, x):
 
 | oneflow | one-fx |
 | ------- | ------- |
-| 0.9.0 | 0.0.2 |
+| >=0.9.0 | 0.0.2, 0.0.3 |

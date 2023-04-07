@@ -134,15 +134,16 @@ def benchmark_test():
     import flowvision.models as models
     import time
 
-    rn18 = models.resnet18()
+    rn18 = models.resnet18().cuda()
     rn18.eval()
 
-    inp = oneflow.randn(10, 3, 224, 224)
+    inp = oneflow.randn(10, 3, 224, 224).cuda()
     output = rn18(inp)
 
     def benchmark(model, iters=20):
         for _ in range(10):
             model(inp)
+        oneflow.cuda.synchronize()
         begin = time.time()
         for _ in range(iters):
             model(inp)

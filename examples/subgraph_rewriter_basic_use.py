@@ -3,6 +3,8 @@ Modified from https://github.com/pytorch/examples/blob/main/fx/subgraph_rewriter
 '''
 
 import oneflow
+import sys
+sys.path.append(r'../one-fx')
 from onefx import symbolic_trace, replace_pattern
 
 
@@ -67,12 +69,15 @@ if __name__ == '__main__':
     print(traced.code)
     # After calling `replace_pattern`, the generated code is:
     '''
+    wrap("oneflow.stack")
+    wrap("oneflow.max")
+
     def forward(self, x, w1, w2):
-        stack = oneflow._oneflow_internal._C.stack([w1, w2])
-        max_1 = oneflow._oneflow_internal._C.max(stack);  stack = None
+        stack = oneflow.stack([w1, w2])
+        max_1 = oneflow.max(stack);  stack = None
         add = x + max_1;  x = max_1 = None
-        stack_1 = oneflow._oneflow_internal._C.stack([w1, w2]);  w1 = w2 = None
-        max_2 = oneflow._oneflow_internal._C.max(stack_1);  stack_1 = None
+        stack_1 = oneflow.stack([w1, w2]);  w1 = w2 = None
+        max_2 = oneflow.max(stack_1);  stack_1 = None
         add_1 = add + max_2;  add = max_2 = None
         return add_1
     '''
